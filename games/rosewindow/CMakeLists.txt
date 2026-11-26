@@ -1,0 +1,16 @@
+# rosewindow (title: Rose Window): draft coloured glass dice and set them into a stained-glass window lit from behind.
+#   rosewindow             the game
+#   rosewindow_auto        the self-playing cart (CPU seats on every seat, cart-smoke runs it)
+#   rosewindow_rules_test  the rules, the CPU levels and full CPU games headless (native only; tests/rosewindow-rules.mjs)
+set(RW_RULES src/rules.c src/frames.c src/cpu.c)
+set(RW_SRC src/main.c src/game.c src/view.c src/layout.c ${RW_RULES})
+set(RW_META TITLE "Rose Window" DESCRIPTION "Draft glass dice and set them into a stained-glass window lit from behind, against friends or the computer." AUTHOR "Luis Montes")
+set(RW_PROGRAMS PROGRAMS ${CMAKE_CURRENT_SOURCE_DIR}/programs/rosewindow.txt)
+bk_add_app(rosewindow SOURCES ${RW_SRC} ASSETS ${CMAKE_CURRENT_SOURCE_DIR}/assets ART ${CMAKE_CURRENT_SOURCE_DIR}/art ${RW_PROGRAMS} ${RW_META})
+bk_add_app(rosewindow_auto SOURCES ${RW_SRC} ASSETS ${CMAKE_CURRENT_SOURCE_DIR}/assets ${RW_PROGRAMS} ${RW_META})
+target_compile_definitions(rosewindow_auto PRIVATE ROSEWINDOW_AUTOPILOT=1)
+if(NOT CW_CART)
+  add_executable(rosewindow_rules_test tests/rules_test.c ${RW_RULES} ${BOARDKIT_RULES_SOURCES})
+  target_include_directories(rosewindow_rules_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src ${BOARDKIT_DIR}/..)
+  target_link_libraries(rosewindow_rules_test PRIVATE cartwheel m)
+endif()

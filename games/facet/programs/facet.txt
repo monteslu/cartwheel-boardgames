@@ -1,0 +1,37 @@
+# r187 program states gems draws (cmake/programs.cmake, tools/programs.mjs)
+# surveyed (tools/programs.mjs): 16 state(s) the runs drew
+depth+instbig+xplain
+depth+xplain
+standard+instbig+shadow+l1011+s100+xplain
+physical+shadow+sheen+l1011+s100+xplain
+standard+shadow+l1011+s100+xplain
+physical+flat+instbig+cc+l1011+xplain
+standard+l1011+xplain
+standard+map+shadow+l1011+s100+xplain
+standard+map+instbig+shadow+l1011+s100+xplain
+standard+instbig+shadow+l1011+s100
+physical+shadow+sheen+l1011+s100
+standard+shadow+l1011+s100
+physical+flat+instbig+cc+l1011
+standard+l1011
+standard+map+shadow+l1011+s100
+standard+map+instbig+shadow+l1011+s100
+# closure (tools/programs.mjs): 10 state(s), the surveyed materials in the environments surveyed for their class
+physical+flat+instbig+shadow+cc+l1011+s100
+physical+flat+instbig+shadow+cc+l1011+s100+xplain
+physical+sheen+l1011
+physical+sheen+l1011+xplain
+standard+instbig+l1011
+standard+instbig+l1011+xplain
+standard+map+instbig+l1011
+standard+map+instbig+l1011+xplain
+standard+map+l1011
+standard+map+l1011+xplain
+# surveyed (tools/programs.mjs): 1 state(s) the runs drew
+physical+flat+cc+l1011
+# closure (tools/programs.mjs): 3 state(s), the surveyed materials in the environments surveyed for their class
+physical+flat+cc+l1011+xplain
+physical+flat+shadow+cc+l1011+s100
+physical+flat+shadow+cc+l1011+s100+xplain
+# surveyed (tools/programs.mjs): 1 state(s) the runs drew
+basic+map+trans+nearest

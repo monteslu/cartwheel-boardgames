@@ -1,0 +1,151 @@
+[
+  {
+    "name": "lanternharbor-cpu-game",
+    "note": "The self-playing cart: four computer seats (Hard, Normal, Normal, Easy) play a whole game by pressing the pad's actions, to the results, with the same scores natively and in the cart on GL and WebGPU. The control stops the same run at frame 3600, before the last round ends.",
+    "app": "lanternharbor_auto",
+    "frames": 3800,
+    "hosts": [
+      "native",
+      "romdev"
+    ],
+    "webgpu": true,
+    "fields": [
+      "game.over",
+      "game.round",
+      "game.score",
+      "game.moves",
+      "game.matches_done"
+    ],
+    "expect": {
+      "game.over": 1,
+      "game.round": 16,
+      "game.score": [
+        44,
+        37,
+        37,
+        30
+      ],
+      "game.moves": 290,
+      "game.matches_done": 1
+    },
+    "controlFrames": 3600
+  },
+  {
+    "name": "lanternharbor-newcomer",
+    "note": "A newcomer on pad 1 who knows only what the screen shows (LANTERNHARBOR_NEWCOMER: hop a few times over the offered choices, then on toward a kind of choice not made yet, choose, and choose the boat the cursor lands on) finishes a whole game against a Normal computer, and makes every kind of move at least once (game.pad_types: pass, job, take plot, stone pit, hidden plot, call back, staff plot, staff building, build, extra good, sell, load, private jetty; seed 4 is one where it gets the jetty, seeds 3 and 5 to 12 do not). The control is the same player lost (LANTERNHARBOR_NEWCOMER=lost: it hops but never chooses), who never makes a move.",
+    "app": "lanternharbor",
+    "frames": 5400,
+    "env": {
+      "LANTERNHARBOR_SEATS": "p,c1",
+      "LANTERNHARBOR_NEWCOMER": "1",
+      "LANTERNHARBOR_FAST": "1",
+      "LANTERNHARBOR_SEED": "4"
+    },
+    "controlEnv": {
+      "LANTERNHARBOR_SEATS": "p,c1",
+      "LANTERNHARBOR_NEWCOMER": "lost",
+      "LANTERNHARBOR_FAST": "1",
+      "LANTERNHARBOR_SEED": "4"
+    },
+    "hosts": [
+      "native",
+      "romdev"
+    ],
+    "webgpu": true,
+    "fields": [
+      "game.over",
+      "game.round",
+      "game.newcomer_moves",
+      "game.moves",
+      "game.score",
+      "game.pad_types"
+    ],
+    "expect": {
+      "game.over": 1,
+      "game.round": 15,
+      "game.newcomer_moves": 92,
+      "game.moves": 254,
+      "game.score": [
+        35,
+        68,
+        0,
+        0
+      ],
+      "game.pad_types": [
+        13,
+        45,
+        2,
+        1,
+        2,
+        1,
+        3,
+        2,
+        8,
+        1,
+        3,
+        10,
+        1,
+        0,
+        0,
+        0
+      ]
+    }
+  },
+  {
+    "name": "lanternharbor-idle-seat",
+    "note": "The newcomer game again with a second pad connected that belongs to no seat and presses buttons all game: it must change nothing and block nothing (the same moves and scores as lanternharbor-newcomer). The control presses the same buttons on the newcomer's own pad, which changes the game.",
+    "app": "lanternharbor",
+    "frames": 5400,
+    "env": {
+      "LANTERNHARBOR_SEATS": "p,c1",
+      "LANTERNHARBOR_NEWCOMER": "1",
+      "LANTERNHARBOR_FAST": "1",
+      "LANTERNHARBOR_SEED": "4"
+    },
+    "input": "lanternharbor-idle-pad2.json",
+    "controlInput": "lanternharbor-idle-pad1.json",
+    "hosts": [
+      "native",
+      "romdev"
+    ],
+    "webgpu": true,
+    "fields": [
+      "game.over",
+      "game.round",
+      "game.newcomer_moves",
+      "game.moves",
+      "game.score",
+      "game.pad_types"
+    ],
+    "expect": {
+      "game.over": 1,
+      "game.round": 15,
+      "game.newcomer_moves": 92,
+      "game.moves": 254,
+      "game.score": [
+        35,
+        68,
+        0,
+        0
+      ],
+      "game.pad_types": [
+        13,
+        45,
+        2,
+        1,
+        2,
+        1,
+        3,
+        2,
+        8,
+        1,
+        3,
+        10,
+        1,
+        0,
+        0,
+        0
+      ]
+    }
+  }
+]

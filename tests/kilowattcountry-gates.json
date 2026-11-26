@@ -1,0 +1,39 @@
+[
+  {
+    "name": "kilowattcountry-cpu-game",
+    "app": "kilowattcountry_auto",
+    "frames": 7500,
+    "env": { "KILOWATTCOUNTRY_SEED": "5" },
+    "controlEnv": { "KILOWATTCOUNTRY_SEED": "6" },
+    "hosts": ["native", "romdev"],
+    "webgpu": true,
+    "fields": ["kc.games_done", "kc.matches", "kc.cpu_moves", "kc.decisions", "kc.winner", "kc.powered", "kc.cities", "kc.money", "kc.hash"],
+    "expect": { "kc.games_done": 1 },
+    "note": "the self-playing cart: four Normal CPUs, every choice entered by pressing the pad's actions toward the highlighted plant, bid, fuel, count or city; a full game ends with a legal winner inside the frame budget, and both GPU hosts reach the same state hash, cities, lights and money. Control: another seed (6) deals another game, which must end differently (a run one frame short can match: the table holds still between matches)"
+  },
+  {
+    "name": "kilowattcountry-idle-seat",
+    "app": "kilowattcountry",
+    "frames": 900,
+    "env": { "KILOWATTCOUNTRY_SEATS": "c1,p", "KILOWATTCOUNTRY_SEED": "2" },
+    "controlEnv": { "KILOWATTCOUNTRY_SEATS": "p,c1", "KILOWATTCOUNTRY_SEED": "2" },
+    "hosts": ["native", "romdev"],
+    "webgpu": true,
+    "fields": ["kc.decisions", "kc.cpu_moves", "kc.turn"],
+    "expect": { "kc.decisions": 1, "kc.cpu_moves": 1, "kc.turn": 1 },
+    "note": "a CPU (Normal) first in the opening order and a person who never touches the pad (the how-to-play card still open): the CPU opens an auction under the card and the game waits for the person's bid. Control: the person sits first instead, the idle seat is to open, and nothing is played (0 decisions)"
+  },
+  {
+    "name": "kilowattcountry-newcomer",
+    "app": "kilowattcountry",
+    "frames": 6500,
+    "input": "kilowattcountry-newcomer.json",
+    "controlInput": "kilowattcountry-newcomer-control.json",
+    "env": { "KILOWATTCOUNTRY_SEATS": "p,c0", "KILOWATTCOUNTRY_SEED": "11", "KILOWATTCOUNTRY_FAST": "1" },
+    "hosts": ["native", "romdev"],
+    "webgpu": true,
+    "fields": ["kc.games_done", "kc.decisions", "kc.cpu_moves", "kc.hash", "kc.kinds_used", "kc.pad_kinds"],
+    "expect": { "kc.games_done": 1, "kc.kinds_used": 8 },
+    "note": "a newcomer on one pad against CPU Easy, using only what the screen offers: the confirm press the how-to-play card and every prompt name, every 20 frames, which closes the card and then takes whatever the cursor starts on (the suggested plant, bid, fuel row, count and city, or Done) each time; a full game ends inside the budget (every move legal by construction: the cursor only stands on legal choices) and the newcomer plays every kind of move at least once (open, pass, raise, drop out, scrap, fuel, done, build: kc.kinds_used 8). Control: the same presses on the back action, which only leaves a fuel count, so the person never opens an auction and no game ends"
+  }
+]

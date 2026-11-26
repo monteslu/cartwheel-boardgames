@@ -1,0 +1,31 @@
+[scene format=1]
+
+[node name="World" type="Node3D"]
+
+[node name="Env" parent="." type="WorldEnvironment"]
+background = color(0.035, 0.022, 0.014, 1)
+ambient_energy = 0.25
+hemi_energy = 0.55
+sky_color = color(0.55, 0.5, 0.45, 1)
+ground_color = color(0.12, 0.08, 0.05, 1)
+
+[node name="Key" parent="." type="DirectionalLight3D"]
+rotation = vec3(-1.05, 0.55, 0)
+energy = 3.2
+color = color(1, 0.93, 0.82, 1)
+shadow = true
+
+[node name="Lamp" parent="." type="SpotLight3D"]
+position = vec3(0.5, 9, 2.5)
+rotation = vec3(-1.45, 0, 0)
+energy = 60
+range = 30
+angle = 0.9
+penumbra = 0.6
+color = color(1, 0.86, 0.66, 1)
+
+[node name="Camera" parent="." type="Camera3D"]
+position = vec3(0.75, 13.2, 8.6)
+fov = 42
+near = 0.1
+far = 80

@@ -1,0 +1,30 @@
+[scene format=1]
+
+[node name="World" type="Node3D"]
+
+[node name="Env" parent="." type="WorldEnvironment"]
+background = color(0.03, 0.022, 0.016, 1)
+ambient_color = color(1, 0.9, 0.78, 1)
+ambient_energy = 0.2
+sky_color = color(0.88, 0.84, 0.76, 1)
+ground_color = color(0.24, 0.15, 0.09, 1)
+hemi_energy = 0.5
+
+[node name="Sun" parent="." type="DirectionalLight3D"]
+rotation = vec3(-1.0, 0.6, 0)
+color = color(1, 0.9, 0.76, 1)
+energy = 2.1
+shadow = true
+shadow_extent = 26
+shadow_far = 120
+
+[node name="Fill" parent="." type="DirectionalLight3D"]
+rotation = vec3(-0.6, -2.5, 0)
+color = color(0.7, 0.8, 1, 1)
+energy = 0.55
+
+[node name="Camera" parent="." type="Camera3D"]
+position = vec3(0, 19.5, 16.5)
+fov = 34
+near = 1
+far = 120

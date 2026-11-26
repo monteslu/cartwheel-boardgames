@@ -1,0 +1,13 @@
+Kilowatt Country (kilowattcountry)
+
+Inspired by Power Grid.
+
+Game design, rules text, the map, the power plants, code and art: Luis Montes. The rules are restated in our own
+words; the country, its cities and links (games/kilowattcountry/tools/gen-data.mjs, a seeded scatter and its
+Gabriel graph) and the plant set (the same script, balance-checked against a worth line) are our own. Every
+texture is drawn by games/kilowattcountry/tools/make-textures.mjs, the plant cards are painted in the game, and
+the sounds are synthesised in code.
+
+Built with cartwheel-engine and three.c (MIT). The font is the engine's built-in sans (see the engine's NOTICE).
+The logo font is Fira Sans Bold (SIL Open Font Licence, shipped with the engine's samples).
+Licence: MIT (the repository's LICENSE).

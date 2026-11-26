@@ -1,0 +1,35 @@
+# r187 program states smokestack draws (cmake/programs.cmake, tools/programs.mjs)
+# surveyed (tools/programs.mjs): 20 state(s) the runs drew
+depth+instbig+xplain
+depth+xplain
+standard+vcol+shadow+ds+l1001+xplain
+standard+shadow+ds+l1001+xplain
+standard+map+shadow+l1001+xplain
+standard+map+instbig+shadow+l1001+xplain
+standard+shadow+l1001+xplain
+standard+l1001+xplain
+standard+instbig+l1001+xplain
+standard+trans+shadow+ds+l1001+xplain
+standard+vcol+shadow+ds+l1001
+standard+shadow+ds+l1001
+standard+map+shadow+l1001
+standard+map+instbig+shadow+l1001
+standard+shadow+l1001
+standard+l1001
+standard+instbig+l1001
+standard+trans+shadow+ds+l1001
+standard+instbig+shadow+ds+l1001+xplain
+standard+instbig+shadow+ds+l1001
+# closure (tools/programs.mjs): 12 state(s), the surveyed materials in the environments surveyed for their class
+standard+ds+l1001
+standard+ds+l1001+xplain
+standard+instbig+ds+l1001
+standard+instbig+ds+l1001+xplain
+standard+instbig+shadow+l1001
+standard+instbig+shadow+l1001+xplain
+standard+map+instbig+l1001
+standard+map+instbig+l1001+xplain
+standard+map+l1001
+standard+map+l1001+xplain
+standard+vcol+ds+l1001
+standard+vcol+ds+l1001+xplain

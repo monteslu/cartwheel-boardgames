@@ -1,0 +1,53 @@
+[scene format=1]
+
+[node name="World" type="Node3D"]
+
+[node name="Env" parent="." type="WorldEnvironment"]
+background = color(0.03, 0.02, 0.015, 1)
+ambient_color = color(1, 0.88, 0.72, 1)
+ambient_energy = 0.08
+sky_color = color(0.9, 0.8, 0.66, 1)
+ground_color = color(0.25, 0.15, 0.08, 1)
+hemi_energy = 0.28
+
+[node name="Post" parent="." type="PostProcess"]
+tonemap = ACES_FILMIC
+bloom = true
+bloom_intensity = 0.12
+vignette = true
+vignette_intensity = 0.55
+
+[node name="Sun" parent="." type="DirectionalLight3D"]
+rotation = vec3(-1.0, 0.45, 0)
+color = color(1, 0.88, 0.7, 1)
+energy = 1.7
+shadow = true
+shadow_extent = 26
+shadow_far = 120
+
+[node name="Fill" parent="." type="DirectionalLight3D"]
+rotation = vec3(-0.6, -2.5, 0)
+color = color(0.7, 0.78, 1, 1)
+energy = 0.35
+
+[node name="Camera" parent="." type="Camera3D"]
+position = vec3(0, 30, 18)
+fov = 30
+near = 1
+far = 140
+
+[node name="Softbox" parent="." type="MeshInstance3D"]
+position = vec3(-8, 70, -10)
+rotation = vec3(3.14159, 0, 0)
+primitive = "PLANE"
+size = vec3(60, 1, 30)
+color = color(0, 0, 0, 1)
+emissive = color(1.6, 1.45, 1.25, 1)
+
+[node name="Probe" parent="." type="ReflectionProbe3D"]
+position = vec3(0, 3, 0)
+size = vec3(80, 160, 60)
+ambient = false
+resolution = 256
+far = 150
+intensity = 0.5

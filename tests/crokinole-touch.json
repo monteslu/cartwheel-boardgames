@@ -1,0 +1,13 @@
+[{"frame":1},
+{"frame":60,"buttons":["south"]},
+{"frame":64},
+{"frame":90,"touches":[{"id":1,"x":800,"y":604}]},
+{"frame":96,"touches":[{"id":1,"x":760,"y":608}]},
+{"frame":104,"touches":[{"id":1,"x":700,"y":612}]},
+{"frame":110,"touches":[{"id":1,"x":700,"y":612}]},
+{"frame":111},
+{"frame":140,"touches":[{"id":2,"x":700,"y":612}]},
+{"frame":150,"touches":[{"id":2,"x":710,"y":642}]},
+{"frame":160,"touches":[{"id":2,"x":720,"y":672}]},
+{"frame":170,"touches":[{"id":2,"x":724,"y":682}]},
+{"frame":171}]

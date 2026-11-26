@@ -1,0 +1,8 @@
+Kit Demo: credits and licences
+
+An original game made as the reference for the board-game kit; not inspired by any published game.
+
+Code, rules and art: this repository (MIT, see LICENSE). The card faces, the card backs, the table, the coin and
+the die are drawn by code in games/kitdemo/src and games/common/boardkit; no third-party art or audio is shipped.
+
+Font: Fira Sans, the engine's built-in sans (cartwheel-engine), SIL Open Font License 1.1.

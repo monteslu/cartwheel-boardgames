@@ -1,0 +1,37 @@
+[
+  {
+    "name": "firsthearth-cpu-game",
+    "app": "firsthearth_auto",
+    "frames": 7200,
+    "hosts": ["native", "romdev"],
+    "webgpu": true,
+    "fields": ["firsthearth.games_done", "firsthearth.matches", "firsthearth.cpu_moves", "firsthearth.decisions", "firsthearth.winner", "firsthearth.score", "firsthearth.hash"],
+    "expect": { "firsthearth.games_done": 1 },
+    "note": "the self-playing cart: four Normal CPUs, every choice entered by pressing the pad's actions toward the highlighted place, count or option; a full game ends with a legal winner inside the frame budget, and both GPU hosts reach the same state hash and scores. Control: the run one frame short differs"
+  },
+  {
+    "name": "firsthearth-idle-seat",
+    "app": "firsthearth",
+    "frames": 600,
+    "env": { "FIRSTHEARTH_SEATS": "c1,p", "FIRSTHEARTH_SEED": "7" },
+    "controlEnv": { "FIRSTHEARTH_SEATS": "p,c1", "FIRSTHEARTH_SEED": "7" },
+    "hosts": ["native", "romdev"],
+    "webgpu": true,
+    "fields": ["firsthearth.decisions", "firsthearth.cpu_moves", "firsthearth.turn"],
+    "expect": { "firsthearth.decisions": 1, "firsthearth.cpu_moves": 1, "firsthearth.turn": 1 },
+    "note": "a CPU (Normal) first and a person who never touches the pad (the how-to-play card still open): the CPU sends its first kin under the card and the game waits for the person. Control: the person sits first instead, the idle seat is to move, and nothing is played (0 decisions)"
+  },
+  {
+    "name": "firsthearth-newcomer",
+    "app": "firsthearth",
+    "frames": 9000,
+    "input": "firsthearth-newcomer.json",
+    "controlInput": "firsthearth-newcomer-control.json",
+    "env": { "FIRSTHEARTH_SEATS": "p,c0", "FIRSTHEARTH_SEED": "11", "FIRSTHEARTH_FAST": "1" },
+    "hosts": ["native", "romdev"],
+    "webgpu": true,
+    "fields": ["firsthearth.games_done", "firsthearth.decisions", "firsthearth.cpu_moves", "firsthearth.hash"],
+    "expect": { "firsthearth.games_done": 1 },
+    "note": "a newcomer on one pad against CPU Easy, using only what the screen offers: the confirm press the how-to-play card and every prompt name, every 20 frames, which closes the card and then takes the highlighted place, the highlighted number of kin and the highlighted option each time; a full game ends inside the budget (every move legal by construction: the highlights are legal moves). Control: the same presses on the back action, which the prompts offer only to pick another place, so the person never sends a kin and no game ends"
+  }
+]

@@ -1,0 +1,9 @@
+Mandible
+
+Inspired by Hive.
+
+Rules restated in our own words; pieces, names, insect carvings, table and text are our own, made in code for
+this game (src/art.c). No third-party art, fonts or sounds beyond the engine's own (cartwheel-engine, MIT; its
+built-in fonts and their licences ship with the engine).
+
+Code: MIT (see LICENSE at the repository root).

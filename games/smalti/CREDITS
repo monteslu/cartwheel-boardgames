@@ -1,0 +1,9 @@
+Smalti
+
+Inspired by Azul.
+
+Design, code and art: Luis Montes. Every texture (glass tiles, boards, trays, table, runner) is drawn by
+games/smalti/art/make-art.mjs; the sounds are synthesised in src/view.c.
+
+Built with cartwheel-engine and three.c (MIT; three.js is MIT, Copyright 2010-2026 three.js authors).
+The board-game kit (games/common/boardkit) is part of this repository (MIT).

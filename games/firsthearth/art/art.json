@@ -1,0 +1,13 @@
+{
+  "icon": "icon.png",
+  "cover": "cover.jpg",
+  "background": "background.jpg",
+  "logo": "logo.png",
+  "title": "title.jpg",
+  "screenshots": [
+    { "path": "shot-1.jpg", "label": "Your turn: the ring over the river and two ghost kin show where they would go, the line below says what the river gives" },
+    { "path": "shot-2.jpg", "label": "Dice tumble in the forest while a lore card waits on the ledge and every village keeps its goods on a hide mat" },
+    { "path": "shot-3.jpg", "label": "Four villages mid season: kin out hunting, huts on the building yards, cards collected in front of each mat" },
+    { "path": "shot-4.jpg", "label": "Choosing how many kin to send: numbered stones beside the forest, the likely haul in the line below" }
+  ]
+}

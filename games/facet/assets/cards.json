@@ -1,0 +1,1293 @@
+{
+ "colors": [
+  "ruby",
+  "sapphire",
+  "emerald",
+  "amethyst",
+  "diamond"
+ ],
+ "cards": [
+  {
+   "tier": 1,
+   "bonus": 0,
+   "points": 0,
+   "cost": [
+    0,
+    0,
+    1,
+    3,
+    0
+   ],
+   "name": "Ruby Cabochon"
+  },
+  {
+   "tier": 1,
+   "bonus": 1,
+   "points": 0,
+   "cost": [
+    0,
+    1,
+    0,
+    0,
+    3
+   ],
+   "name": "Sapphire Cabochon"
+  },
+  {
+   "tier": 1,
+   "bonus": 2,
+   "points": 0,
+   "cost": [
+    3,
+    1,
+    0,
+    0,
+    0
+   ],
+   "name": "Emerald Cabochon"
+  },
+  {
+   "tier": 1,
+   "bonus": 3,
+   "points": 0,
+   "cost": [
+    0,
+    0,
+    3,
+    1,
+    0
+   ],
+   "name": "Amethyst Cabochon"
+  },
+  {
+   "tier": 1,
+   "bonus": 4,
+   "points": 0,
+   "cost": [
+    0,
+    3,
+    0,
+    0,
+    1
+   ],
+   "name": "Diamond Cabochon"
+  },
+  {
+   "tier": 1,
+   "bonus": 0,
+   "points": 0,
+   "cost": [
+    0,
+    0,
+    0,
+    3,
+    1
+   ],
+   "name": "Ruby Bead"
+  },
+  {
+   "tier": 1,
+   "bonus": 1,
+   "points": 0,
+   "cost": [
+    2,
+    0,
+    2,
+    0,
+    0
+   ],
+   "name": "Sapphire Bead"
+  },
+  {
+   "tier": 1,
+   "bonus": 2,
+   "points": 0,
+   "cost": [
+    3,
+    0,
+    0,
+    0,
+    1
+   ],
+   "name": "Emerald Bead"
+  },
+  {
+   "tier": 1,
+   "bonus": 3,
+   "points": 0,
+   "cost": [
+    0,
+    3,
+    1,
+    0,
+    0
+   ],
+   "name": "Amethyst Bead"
+  },
+  {
+   "tier": 1,
+   "bonus": 4,
+   "points": 0,
+   "cost": [
+    0,
+    1,
+    3,
+    0,
+    0
+   ],
+   "name": "Diamond Bead"
+  },
+  {
+   "tier": 1,
+   "bonus": 0,
+   "points": 0,
+   "cost": [
+    0,
+    0,
+    0,
+    1,
+    3
+   ],
+   "name": "Ruby Chip"
+  },
+  {
+   "tier": 1,
+   "bonus": 1,
+   "points": 0,
+   "cost": [
+    0,
+    1,
+    0,
+    3,
+    0
+   ],
+   "name": "Sapphire Chip"
+  },
+  {
+   "tier": 1,
+   "bonus": 2,
+   "points": 0,
+   "cost": [
+    3,
+    0,
+    0,
+    1,
+    0
+   ],
+   "name": "Emerald Chip"
+  },
+  {
+   "tier": 1,
+   "bonus": 3,
+   "points": 0,
+   "cost": [
+    0,
+    0,
+    3,
+    0,
+    1
+   ],
+   "name": "Amethyst Chip"
+  },
+  {
+   "tier": 1,
+   "bonus": 4,
+   "points": 0,
+   "cost": [
+    0,
+    2,
+    0,
+    2,
+    0
+   ],
+   "name": "Diamond Chip"
+  },
+  {
+   "tier": 1,
+   "bonus": 0,
+   "points": 0,
+   "cost": [
+    1,
+    0,
+    0,
+    0,
+    3
+   ],
+   "name": "Ruby Rondelle"
+  },
+  {
+   "tier": 1,
+   "bonus": 1,
+   "points": 0,
+   "cost": [
+    3,
+    0,
+    1,
+    0,
+    0
+   ],
+   "name": "Sapphire Rondelle"
+  },
+  {
+   "tier": 1,
+   "bonus": 2,
+   "points": 0,
+   "cost": [
+    0,
+    2,
+    0,
+    0,
+    2
+   ],
+   "name": "Emerald Rondelle"
+  },
+  {
+   "tier": 1,
+   "bonus": 3,
+   "points": 0,
+   "cost": [
+    0,
+    2,
+    2,
+    0,
+    0
+   ],
+   "name": "Amethyst Rondelle"
+  },
+  {
+   "tier": 1,
+   "bonus": 4,
+   "points": 0,
+   "cost": [
+    1,
+    0,
+    0,
+    3,
+    0
+   ],
+   "name": "Diamond Rondelle"
+  },
+  {
+   "tier": 1,
+   "bonus": 0,
+   "points": 0,
+   "cost": [
+    0,
+    0,
+    2,
+    0,
+    2
+   ],
+   "name": "Ruby Drop"
+  },
+  {
+   "tier": 1,
+   "bonus": 1,
+   "points": 0,
+   "cost": [
+    2,
+    0,
+    0,
+    2,
+    0
+   ],
+   "name": "Sapphire Drop"
+  },
+  {
+   "tier": 1,
+   "bonus": 2,
+   "points": 0,
+   "cost": [
+    1,
+    3,
+    0,
+    0,
+    0
+   ],
+   "name": "Emerald Drop"
+  },
+  {
+   "tier": 1,
+   "bonus": 3,
+   "points": 0,
+   "cost": [
+    1,
+    0,
+    3,
+    0,
+    0
+   ],
+   "name": "Amethyst Drop"
+  },
+  {
+   "tier": 1,
+   "bonus": 4,
+   "points": 0,
+   "cost": [
+    0,
+    3,
+    0,
+    1,
+    0
+   ],
+   "name": "Diamond Drop"
+  },
+  {
+   "tier": 1,
+   "bonus": 0,
+   "points": 0,
+   "cost": [
+    0,
+    0,
+    0,
+    2,
+    2
+   ],
+   "name": "Ruby Button"
+  },
+  {
+   "tier": 1,
+   "bonus": 1,
+   "points": 0,
+   "cost": [
+    2,
+    0,
+    0,
+    0,
+    2
+   ],
+   "name": "Sapphire Button"
+  },
+  {
+   "tier": 1,
+   "bonus": 2,
+   "points": 0,
+   "cost": [
+    0,
+    0,
+    1,
+    0,
+    3
+   ],
+   "name": "Emerald Button"
+  },
+  {
+   "tier": 1,
+   "bonus": 3,
+   "points": 0,
+   "cost": [
+    2,
+    2,
+    0,
+    0,
+    0
+   ],
+   "name": "Amethyst Button"
+  },
+  {
+   "tier": 1,
+   "bonus": 4,
+   "points": 0,
+   "cost": [
+    0,
+    0,
+    2,
+    2,
+    0
+   ],
+   "name": "Diamond Button"
+  },
+  {
+   "tier": 1,
+   "bonus": 0,
+   "points": 0,
+   "cost": [
+    1,
+    0,
+    1,
+    1,
+    0
+   ],
+   "name": "Ruby Stud"
+  },
+  {
+   "tier": 1,
+   "bonus": 1,
+   "points": 0,
+   "cost": [
+    0,
+    1,
+    1,
+    1,
+    0
+   ],
+   "name": "Sapphire Stud"
+  },
+  {
+   "tier": 1,
+   "bonus": 2,
+   "points": 0,
+   "cost": [
+    1,
+    0,
+    1,
+    0,
+    1
+   ],
+   "name": "Emerald Stud"
+  },
+  {
+   "tier": 1,
+   "bonus": 3,
+   "points": 0,
+   "cost": [
+    1,
+    1,
+    0,
+    1,
+    0
+   ],
+   "name": "Amethyst Stud"
+  },
+  {
+   "tier": 1,
+   "bonus": 4,
+   "points": 0,
+   "cost": [
+    0,
+    1,
+    0,
+    1,
+    1
+   ],
+   "name": "Diamond Stud"
+  },
+  {
+   "tier": 1,
+   "bonus": 0,
+   "points": 1,
+   "cost": [
+    0,
+    0,
+    1,
+    1,
+    3
+   ],
+   "name": "Ruby Pebble"
+  },
+  {
+   "tier": 1,
+   "bonus": 1,
+   "points": 1,
+   "cost": [
+    2,
+    0,
+    2,
+    1,
+    0
+   ],
+   "name": "Sapphire Pebble"
+  },
+  {
+   "tier": 1,
+   "bonus": 2,
+   "points": 1,
+   "cost": [
+    0,
+    3,
+    1,
+    0,
+    1
+   ],
+   "name": "Emerald Pebble"
+  },
+  {
+   "tier": 1,
+   "bonus": 3,
+   "points": 1,
+   "cost": [
+    3,
+    1,
+    0,
+    0,
+    1
+   ],
+   "name": "Amethyst Pebble"
+  },
+  {
+   "tier": 1,
+   "bonus": 4,
+   "points": 1,
+   "cost": [
+    0,
+    1,
+    1,
+    3,
+    0
+   ],
+   "name": "Diamond Pebble"
+  },
+  {
+   "tier": 2,
+   "bonus": 0,
+   "points": 1,
+   "cost": [
+    3,
+    1,
+    1,
+    0,
+    1
+   ],
+   "name": "Ruby Signet"
+  },
+  {
+   "tier": 2,
+   "bonus": 1,
+   "points": 1,
+   "cost": [
+    0,
+    1,
+    1,
+    3,
+    1
+   ],
+   "name": "Sapphire Signet"
+  },
+  {
+   "tier": 2,
+   "bonus": 2,
+   "points": 1,
+   "cost": [
+    0,
+    1,
+    3,
+    1,
+    1
+   ],
+   "name": "Emerald Signet"
+  },
+  {
+   "tier": 2,
+   "bonus": 3,
+   "points": 1,
+   "cost": [
+    2,
+    1,
+    0,
+    2,
+    1
+   ],
+   "name": "Amethyst Signet"
+  },
+  {
+   "tier": 2,
+   "bonus": 4,
+   "points": 1,
+   "cost": [
+    2,
+    2,
+    1,
+    0,
+    1
+   ],
+   "name": "Diamond Signet"
+  },
+  {
+   "tier": 2,
+   "bonus": 0,
+   "points": 1,
+   "cost": [
+    1,
+    1,
+    0,
+    1,
+    3
+   ],
+   "name": "Ruby Pendant"
+  },
+  {
+   "tier": 2,
+   "bonus": 1,
+   "points": 1,
+   "cost": [
+    0,
+    3,
+    1,
+    1,
+    1
+   ],
+   "name": "Sapphire Pendant"
+  },
+  {
+   "tier": 2,
+   "bonus": 2,
+   "points": 1,
+   "cost": [
+    1,
+    0,
+    2,
+    2,
+    1
+   ],
+   "name": "Emerald Pendant"
+  },
+  {
+   "tier": 2,
+   "bonus": 3,
+   "points": 1,
+   "cost": [
+    3,
+    0,
+    1,
+    1,
+    1
+   ],
+   "name": "Amethyst Pendant"
+  },
+  {
+   "tier": 2,
+   "bonus": 4,
+   "points": 1,
+   "cost": [
+    1,
+    2,
+    2,
+    1,
+    0
+   ],
+   "name": "Diamond Pendant"
+  },
+  {
+   "tier": 2,
+   "bonus": 0,
+   "points": 2,
+   "cost": [
+    0,
+    1,
+    0,
+    1,
+    5
+   ],
+   "name": "Ruby Clasp"
+  },
+  {
+   "tier": 2,
+   "bonus": 1,
+   "points": 2,
+   "cost": [
+    0,
+    0,
+    6,
+    1,
+    0
+   ],
+   "name": "Sapphire Clasp"
+  },
+  {
+   "tier": 2,
+   "bonus": 2,
+   "points": 2,
+   "cost": [
+    0,
+    5,
+    0,
+    1,
+    1
+   ],
+   "name": "Emerald Clasp"
+  },
+  {
+   "tier": 2,
+   "bonus": 3,
+   "points": 2,
+   "cost": [
+    5,
+    0,
+    1,
+    1,
+    0
+   ],
+   "name": "Amethyst Clasp"
+  },
+  {
+   "tier": 2,
+   "bonus": 4,
+   "points": 2,
+   "cost": [
+    1,
+    1,
+    0,
+    5,
+    0
+   ],
+   "name": "Diamond Clasp"
+  },
+  {
+   "tier": 2,
+   "bonus": 0,
+   "points": 2,
+   "cost": [
+    0,
+    1,
+    1,
+    0,
+    5
+   ],
+   "name": "Ruby Brooch"
+  },
+  {
+   "tier": 2,
+   "bonus": 1,
+   "points": 2,
+   "cost": [
+    6,
+    0,
+    1,
+    0,
+    0
+   ],
+   "name": "Sapphire Brooch"
+  },
+  {
+   "tier": 2,
+   "bonus": 2,
+   "points": 2,
+   "cost": [
+    0,
+    6,
+    0,
+    0,
+    1
+   ],
+   "name": "Emerald Brooch"
+  },
+  {
+   "tier": 2,
+   "bonus": 3,
+   "points": 2,
+   "cost": [
+    1,
+    0,
+    6,
+    0,
+    0
+   ],
+   "name": "Amethyst Brooch"
+  },
+  {
+   "tier": 2,
+   "bonus": 4,
+   "points": 2,
+   "cost": [
+    0,
+    0,
+    0,
+    6,
+    1
+   ],
+   "name": "Diamond Brooch"
+  },
+  {
+   "tier": 2,
+   "bonus": 0,
+   "points": 2,
+   "cost": [
+    1,
+    0,
+    0,
+    1,
+    5
+   ],
+   "name": "Ruby Locket"
+  },
+  {
+   "tier": 2,
+   "bonus": 1,
+   "points": 2,
+   "cost": [
+    2,
+    3,
+    3,
+    0,
+    0
+   ],
+   "name": "Sapphire Locket"
+  },
+  {
+   "tier": 2,
+   "bonus": 2,
+   "points": 2,
+   "cost": [
+    1,
+    0,
+    0,
+    5,
+    1
+   ],
+   "name": "Emerald Locket"
+  },
+  {
+   "tier": 2,
+   "bonus": 3,
+   "points": 2,
+   "cost": [
+    1,
+    6,
+    0,
+    0,
+    0
+   ],
+   "name": "Amethyst Locket"
+  },
+  {
+   "tier": 2,
+   "bonus": 4,
+   "points": 2,
+   "cost": [
+    5,
+    0,
+    1,
+    0,
+    1
+   ],
+   "name": "Diamond Locket"
+  },
+  {
+   "tier": 2,
+   "bonus": 0,
+   "points": 3,
+   "cost": [
+    1,
+    0,
+    6,
+    0,
+    1
+   ],
+   "name": "Ruby Buckle"
+  },
+  {
+   "tier": 2,
+   "bonus": 1,
+   "points": 3,
+   "cost": [
+    1,
+    0,
+    0,
+    1,
+    6
+   ],
+   "name": "Sapphire Buckle"
+  },
+  {
+   "tier": 2,
+   "bonus": 2,
+   "points": 3,
+   "cost": [
+    1,
+    1,
+    0,
+    6,
+    0
+   ],
+   "name": "Emerald Buckle"
+  },
+  {
+   "tier": 2,
+   "bonus": 3,
+   "points": 3,
+   "cost": [
+    1,
+    6,
+    1,
+    0,
+    0
+   ],
+   "name": "Amethyst Buckle"
+  },
+  {
+   "tier": 2,
+   "bonus": 4,
+   "points": 3,
+   "cost": [
+    3,
+    0,
+    4,
+    0,
+    2
+   ],
+   "name": "Diamond Buckle"
+  },
+  {
+   "tier": 3,
+   "bonus": 0,
+   "points": 3,
+   "cost": [
+    0,
+    2,
+    3,
+    2,
+    3
+   ],
+   "name": "Ruby Diadem"
+  },
+  {
+   "tier": 3,
+   "bonus": 1,
+   "points": 3,
+   "cost": [
+    6,
+    3,
+    0,
+    0,
+    0
+   ],
+   "name": "Sapphire Diadem"
+  },
+  {
+   "tier": 3,
+   "bonus": 2,
+   "points": 3,
+   "cost": [
+    0,
+    1,
+    3,
+    3,
+    3
+   ],
+   "name": "Emerald Diadem"
+  },
+  {
+   "tier": 3,
+   "bonus": 3,
+   "points": 3,
+   "cost": [
+    3,
+    2,
+    2,
+    3,
+    0
+   ],
+   "name": "Amethyst Diadem"
+  },
+  {
+   "tier": 3,
+   "bonus": 4,
+   "points": 3,
+   "cost": [
+    0,
+    0,
+    0,
+    6,
+    3
+   ],
+   "name": "Diamond Diadem"
+  },
+  {
+   "tier": 3,
+   "bonus": 0,
+   "points": 4,
+   "cost": [
+    3,
+    4,
+    4,
+    0,
+    0
+   ],
+   "name": "Ruby Scepter"
+  },
+  {
+   "tier": 3,
+   "bonus": 1,
+   "points": 4,
+   "cost": [
+    1,
+    0,
+    2,
+    0,
+    7
+   ],
+   "name": "Sapphire Scepter"
+  },
+  {
+   "tier": 3,
+   "bonus": 2,
+   "points": 4,
+   "cost": [
+    1,
+    7,
+    2,
+    0,
+    0
+   ],
+   "name": "Emerald Scepter"
+  },
+  {
+   "tier": 3,
+   "bonus": 3,
+   "points": 4,
+   "cost": [
+    7,
+    0,
+    2,
+    1,
+    0
+   ],
+   "name": "Amethyst Scepter"
+  },
+  {
+   "tier": 3,
+   "bonus": 4,
+   "points": 4,
+   "cost": [
+    0,
+    1,
+    0,
+    7,
+    2
+   ],
+   "name": "Diamond Scepter"
+  },
+  {
+   "tier": 3,
+   "bonus": 0,
+   "points": 4,
+   "cost": [
+    1,
+    0,
+    7,
+    0,
+    2
+   ],
+   "name": "Ruby Chalice"
+  },
+  {
+   "tier": 3,
+   "bonus": 1,
+   "points": 4,
+   "cost": [
+    1,
+    2,
+    0,
+    0,
+    7
+   ],
+   "name": "Sapphire Chalice"
+  },
+  {
+   "tier": 3,
+   "bonus": 2,
+   "points": 4,
+   "cost": [
+    3,
+    4,
+    0,
+    4,
+    0
+   ],
+   "name": "Emerald Chalice"
+  },
+  {
+   "tier": 3,
+   "bonus": 3,
+   "points": 4,
+   "cost": [
+    2,
+    0,
+    7,
+    0,
+    1
+   ],
+   "name": "Amethyst Chalice"
+  },
+  {
+   "tier": 3,
+   "bonus": 4,
+   "points": 4,
+   "cost": [
+    1,
+    2,
+    0,
+    7,
+    0
+   ],
+   "name": "Diamond Chalice"
+  },
+  {
+   "tier": 3,
+   "bonus": 0,
+   "points": 5,
+   "cost": [
+    2,
+    4,
+    0,
+    0,
+    6
+   ],
+   "name": "Ruby Mirror"
+  },
+  {
+   "tier": 3,
+   "bonus": 1,
+   "points": 5,
+   "cost": [
+    6,
+    2,
+    4,
+    0,
+    0
+   ],
+   "name": "Sapphire Mirror"
+  },
+  {
+   "tier": 3,
+   "bonus": 2,
+   "points": 5,
+   "cost": [
+    0,
+    3,
+    0,
+    7,
+    2
+   ],
+   "name": "Emerald Mirror"
+  },
+  {
+   "tier": 3,
+   "bonus": 3,
+   "points": 5,
+   "cost": [
+    4,
+    0,
+    6,
+    0,
+    2
+   ],
+   "name": "Amethyst Mirror"
+  },
+  {
+   "tier": 3,
+   "bonus": 4,
+   "points": 5,
+   "cost": [
+    0,
+    7,
+    0,
+    2,
+    3
+   ],
+   "name": "Diamond Mirror"
+  }
+ ],
+ "patrons": [
+  {
+   "need": [
+    0,
+    0,
+    4,
+    4,
+    0
+   ],
+   "points": 3,
+   "name": "Ada the Harbor Warden"
+  },
+  {
+   "need": [
+    4,
+    4,
+    0,
+    0,
+    0
+   ],
+   "points": 3,
+   "name": "Bram the Glassmaker"
+  },
+  {
+   "need": [
+    0,
+    4,
+    0,
+    0,
+    4
+   ],
+   "points": 3,
+   "name": "Cora the Archivist"
+  },
+  {
+   "need": [
+    0,
+    0,
+    4,
+    0,
+    4
+   ],
+   "points": 3,
+   "name": "Desmond the Vintner"
+  },
+  {
+   "need": [
+    3,
+    0,
+    0,
+    3,
+    3
+   ],
+   "points": 3,
+   "name": "Elsbeth the Cartographer"
+  },
+  {
+   "need": [
+    3,
+    3,
+    0,
+    3,
+    0
+   ],
+   "points": 3,
+   "name": "Florian the Bellfounder"
+  },
+  {
+   "need": [
+    0,
+    3,
+    3,
+    3,
+    0
+   ],
+   "points": 3,
+   "name": "Greta the Astronomer"
+  },
+  {
+   "need": [
+    3,
+    0,
+    3,
+    0,
+    3
+   ],
+   "points": 3,
+   "name": "Hollis the Weaver"
+  },
+  {
+   "need": [
+    2,
+    2,
+    2,
+    0,
+    2
+   ],
+   "points": 3,
+   "name": "Imre the Ferryman"
+  },
+  {
+   "need": [
+    2,
+    0,
+    2,
+    2,
+    2
+   ],
+   "points": 3,
+   "name": "Juno the Apothecary"
+  }
+ ]
+}

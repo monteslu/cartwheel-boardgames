@@ -1,0 +1,79 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+# A v* tag builds every release game's dual GL + WebGPU cart (games.txt, the games not marked dev) as releases ship them, checks each carries the
+# tag's version, and attaches them to the tag's GitHub release with the version's CHANGELOG.md section as notes.
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-24.04
+    timeout-minutes: 150
+    permissions:
+      contents: write # the release
+      actions: read # the tagged commit's run on main
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # the tags, for the carts' version
+          filter: tree:0
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      # release only a commit whose push to main has a green CI run; a tag pushed with its commit waits for it
+      - name: The tagged commit is green on main
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for i in $(seq 1 90); do
+            c=$(gh run list -R "$GITHUB_REPOSITORY" --workflow ci.yml --branch main --event push \
+              --commit "$GITHUB_SHA" --limit 1 --json status,conclusion --jq '.[0] | "\(.status) \(.conclusion)"')
+            case "$c" in
+              "completed success") echo "main is green for $GITHUB_SHA"; exit 0 ;;
+              completed*) echo "main's run for $GITHUB_SHA ended $c: fix main, then rerun this tag's run" >&2; exit 1 ;;
+              *) echo "main's run for $GITHUB_SHA: ${c:-not started} (waited $i min)"; sleep 60 ;;
+            esac
+          done
+          echo "no green CI run on main for $GITHUB_SHA after 90 minutes" >&2; exit 1
+      - name: System packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends cmake ninja-build zip unzip
+      - name: Cache dependencies
+        uses: actions/cache@v6
+        with:
+          path: deps
+          key: deps-sdk-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('scripts/deps.lock', 'scripts/fetch-deps.sh') }}
+      - name: Fetch the SDKs
+        run: scripts/fetch-deps.sh
+      - name: Build the carts
+        run: |
+          echo "GAMES=$(scripts/games.sh release | tr '\n' ' ')" >> "$GITHUB_ENV"
+          # shellcheck disable=SC2086,SC2046 # the game list splits into words on purpose
+          RELEASE=1 TARGETS=cart-wgpu scripts/build.sh $(scripts/games.sh release)
+      - name: Every cart carries its art
+        run: node tests/cart-art.mjs
+      - name: Every cart is the tag's version
+        run: |
+          # shellcheck disable=SC2086,SC2046 # the game list splits into words on purpose
+          node tests/cart-version.mjs $GAMES
+      - name: Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p files
+          # shellcheck disable=SC2086,SC2046 # the game list splits into words on purpose
+          for g in $GAMES; do cp "build/cart-wgpu/carts/$g.wasc" "files/$g.wasc"; done
+          ls -l files
+          v="${GITHUB_REF_NAME#v}"
+          awk -v v="$v" '$1 == "##" { if (on) exit; on = ($2 == v) ; next } on' CHANGELOG.md > notes.md
+          [ -s notes.md ] || { echo "CHANGELOG.md has no ## $v section" >&2; exit 1; }
+          if gh release view "$GITHUB_REF_NAME" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release edit "$GITHUB_REF_NAME" -R "$GITHUB_REPOSITORY" --notes-file notes.md
+          else
+            gh release create "$GITHUB_REF_NAME" -R "$GITHUB_REPOSITORY" --title "$GITHUB_REF_NAME" --notes-file notes.md
+          fi
+          gh release upload "$GITHUB_REF_NAME" -R "$GITHUB_REPOSITORY" --clobber files/*.wasc

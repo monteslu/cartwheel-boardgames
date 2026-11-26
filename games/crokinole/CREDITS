@@ -1,0 +1,13 @@
+Crokinole
+=========
+
+A traditional game, free for everyone to play (played on wooden boards since the 1800s). The rules in the game are
+restated in our own words.
+
+Game, code, art and sound: Luis Montes. The board, the discs, the table textures and every sound are made in code at
+load (games/crokinole/src/art.c, src/sound.c); there are no image or audio files.
+
+The mesh builder (src/geo.c) comes from the same author's pinball in even-more-cartwheel-examples (MIT).
+
+Built on cartwheel-engine and three.c (MIT licence, Copyright 2026 Luis Montes), which carry three.js's MIT licence
+(Copyright 2010-2026 three.js authors) for the generated programs.

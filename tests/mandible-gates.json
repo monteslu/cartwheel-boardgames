@@ -1,0 +1,87 @@
+[
+  {
+    "name": "mandible-cpu-game",
+    "app": "mandible_auto",
+    "frames": 12000,
+    "hosts": [
+      "native",
+      "romdev"
+    ],
+    "webgpu": true,
+    "fields": [
+      "game.games",
+      "game.wins",
+      "game.cpu_moves",
+      "game.human_moves",
+      "game.state_hash",
+      "game.ply"
+    ],
+    "expect": {
+      "game.games": 1,
+      "game.human_moves": 0
+    },
+    "note": "the self-playing cart: CPU Hard (Ivory) against CPU Normal (Ebony), every move entered by pressing the pad's actions; a full game ends with a legal result inside the frame budget and both GPU hosts reach the same state hash. Control: the same run stopped at frame 1000, mid-game (a finished game no longer changes in its last frame, so a run one frame short matched it)",
+    "controlFrames": 1000
+  },
+  {
+    "name": "mandible-idle-seat",
+    "app": "mandible",
+    "frames": 400,
+    "env": {
+      "MANDIBLE_SEATS": "1,-1"
+    },
+    "controlEnv": {
+      "MANDIBLE_SEATS": "-1,1"
+    },
+    "hosts": [
+      "native",
+      "romdev"
+    ],
+    "webgpu": true,
+    "fields": [
+      "game.ply",
+      "game.cpu_moves",
+      "game.turn"
+    ],
+    "expect": {
+      "game.ply": 1,
+      "game.cpu_moves": 1,
+      "game.turn": 1
+    },
+    "note": "a CPU (Normal) on Ivory and a person on Ebony who never touches the pad (the how-to-play card still open): the CPU plays its opening under the card and the game waits for the person. Control: the person takes Ivory instead, the idle seat moves first, and nothing is played (ply 0)"
+  },
+  {
+    "name": "mandible-newcomer",
+    "app": "mandible",
+    "frames": 1500,
+    "env": {
+      "MANDIBLE_SEATS": "-1,0",
+      "MANDIBLE_NEWCOMER": "1"
+    },
+    "hosts": [
+      "native",
+      "romdev"
+    ],
+    "webgpu": true,
+    "fields": [
+      "game.games",
+      "game.human_moves",
+      "game.cpu_moves",
+      "game.stray",
+      "game.state_hash",
+      "game.newcomer_moves",
+      "game.newcomer_kinds",
+      "game.person_kinds"
+    ],
+    "expect": {
+      "game.games": 1,
+      "game.stray": 0,
+      "game.newcomer_kinds": 3
+    },
+    "note": "a newcomer on Ivory's pad against CPU Easy, using only what the screen offers (MANDIBLE_NEWCOMER): it closes the card, takes a lit piece and puts it on a lit space, preferring a kind of move it has not made yet (placing from the hand, stepping on the table, climbing onto a stack; a pass comes only when nothing else is legal, and tests/mandible-moves.mjs drives that one). A full game ends inside the frame budget with all three kinds made. Control: the same player lost (MANDIBLE_NEWCOMER=lost), who closes the card and walks the cursor but never takes a piece, so no game is played",
+    "controlEnv": {
+      "MANDIBLE_SEATS": "-1,0",
+      "MANDIBLE_NEWCOMER": "lost"
+    }
+  }
+]

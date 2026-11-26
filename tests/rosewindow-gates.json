@@ -1,0 +1,176 @@
+[
+  {
+    "name": "rosewindow-cpu-game",
+    "note": "The self-playing cart: four computer seats (Hard, Normal, Normal, Easy) choose their frames and play all ten rounds by pressing the pad's actions, to the results, with the same scores and state natively and in the cart on GL and WebGPU. Hard plays by tree search on the margin reward (scale 2). The control stops the same run at frame 2800, before the last round ends.",
+    "app": "rosewindow_auto",
+    "frames": 3300,
+    "hosts": [
+      "native",
+      "romdev"
+    ],
+    "webgpu": true,
+    "fields": [
+      "game.over",
+      "game.round",
+      "game.score",
+      "game.moves",
+      "game.matches_done",
+      "game.state_hash"
+    ],
+    "expect": {
+      "game.over": 1,
+      "game.round": 10,
+      "game.score": [
+        56,
+        25,
+        50,
+        41
+      ],
+      "game.moves": 92,
+      "game.matches_done": 1
+    },
+    "controlFrames": 2800
+  },
+  {
+    "name": "rosewindow-solo",
+    "note": "One seat alone (a Hard computer) plays all ten rounds against the round track, the same natively and in the cart. The control stops the run at frame 1100, before the last round ends.",
+    "app": "rosewindow",
+    "frames": 1500,
+    "env": {
+      "ROSEWINDOW_SEATS": "c2",
+      "ROSEWINDOW_FAST": "1",
+      "ROSEWINDOW_SEED": "4"
+    },
+    "hosts": [
+      "native",
+      "romdev"
+    ],
+    "webgpu": true,
+    "fields": [
+      "game.over",
+      "game.round",
+      "game.score",
+      "game.track_sum",
+      "game.winners",
+      "game.matches_done",
+      "game.state_hash"
+    ],
+    "expect": {
+      "game.over": 1,
+      "game.round": 10,
+      "game.score": [
+        61,
+        0,
+        0,
+        0
+      ],
+      "game.matches_done": 1
+    },
+    "controlFrames": 1100
+  },
+  {
+    "name": "rosewindow-newcomer",
+    "note": "A newcomer on pad 1 who knows only what the screen shows (ROSEWINDOW_NEWCOMER: hop a few times along the lit choices, choose, again and again; curious once each about a lit tool card and the bell) finishes a whole game against a Normal computer and makes every kind of move: a window frame, dice set (14), the bell (6) and tools (2: the turning peg and the redraw, game.person_tools bits 1 and 8). The control is the same player lost (ROSEWINDOW_NEWCOMER=lost: it hops but never chooses), who never makes a move.",
+    "app": "rosewindow",
+    "frames": 2600,
+    "env": {
+      "ROSEWINDOW_SEATS": "p,c1",
+      "ROSEWINDOW_NEWCOMER": "1",
+      "ROSEWINDOW_FAST": "1",
+      "ROSEWINDOW_SEED": "3"
+    },
+    "controlEnv": {
+      "ROSEWINDOW_SEATS": "p,c1",
+      "ROSEWINDOW_NEWCOMER": "lost",
+      "ROSEWINDOW_FAST": "1",
+      "ROSEWINDOW_SEED": "3"
+    },
+    "hosts": [
+      "native",
+      "romdev"
+    ],
+    "webgpu": true,
+    "fields": [
+      "game.over",
+      "game.round",
+      "game.newcomer_moves",
+      "game.moves",
+      "game.score",
+      "game.person_kinds",
+      "game.person_tools",
+      "game.state_hash"
+    ],
+    "expect": {
+      "game.over": 1,
+      "game.round": 10,
+      "game.moves": 47,
+      "game.newcomer_moves": 39,
+      "game.score": [
+        11,
+        36,
+        0,
+        0
+      ],
+      "game.person_kinds": [
+        14,
+        6,
+        2,
+        1
+      ],
+      "game.person_tools": 258
+    }
+  },
+  {
+    "name": "rosewindow-idle-seat",
+    "note": "The newcomer game again with a second pad connected that belongs to no seat and presses buttons all game: it must change nothing and block nothing (the same moves, scores and state as rosewindow-newcomer). The control gives that pad the second seat (two people, no computer): the same presses then play for it and the game differs.",
+    "app": "rosewindow",
+    "frames": 2600,
+    "env": {
+      "ROSEWINDOW_SEATS": "p,c1",
+      "ROSEWINDOW_NEWCOMER": "1",
+      "ROSEWINDOW_FAST": "1",
+      "ROSEWINDOW_SEED": "3"
+    },
+    "input": "rosewindow-idle-pad2.json",
+    "hosts": [
+      "native",
+      "romdev"
+    ],
+    "webgpu": true,
+    "fields": [
+      "game.over",
+      "game.round",
+      "game.newcomer_moves",
+      "game.moves",
+      "game.score",
+      "game.person_kinds",
+      "game.person_tools",
+      "game.state_hash"
+    ],
+    "expect": {
+      "game.over": 1,
+      "game.round": 10,
+      "game.moves": 47,
+      "game.newcomer_moves": 39,
+      "game.score": [
+        11,
+        36,
+        0,
+        0
+      ],
+      "game.person_kinds": [
+        14,
+        6,
+        2,
+        1
+      ],
+      "game.person_tools": 258
+    },
+    "controlEnv": {
+      "ROSEWINDOW_SEATS": "p,p",
+      "ROSEWINDOW_NEWCOMER": "1",
+      "ROSEWINDOW_FAST": "1",
+      "ROSEWINDOW_SEED": "3"
+    }
+  }
+]

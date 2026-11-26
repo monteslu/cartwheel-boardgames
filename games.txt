@@ -1,0 +1,14 @@
+# The games CI builds, smoke-tests and prompt-checks, and the release ships: one directory name under games/
+# per line. A game agent appends its game here when its directory first builds (this is the only list). A second
+# word "dev" keeps a game out of the release and the art check (built, smoke-tested and prompt-checked still).
+kitdemo dev
+smalti
+mandible
+firsthearth
+facet
+smokestack
+crokinole
+rosewindow
+lanternharbor
+feverline
+kilowattcountry

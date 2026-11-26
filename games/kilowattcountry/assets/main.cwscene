@@ -1,0 +1,34 @@
+[scene format=1]
+
+[node name="World" type="Node3D"]
+
+[node name="Env" parent="." type="WorldEnvironment"]
+background = color(0.012, 0.016, 0.03, 1)
+ambient_color = color(0.72, 0.8, 1, 1)
+ambient_energy = 0.22
+sky_color = color(0.62, 0.7, 0.9, 1)
+ground_color = color(0.18, 0.12, 0.08, 1)
+hemi_energy = 0.5
+
+[node name="Post" parent="." type="PostProcess"]
+bloom = true
+bloom_intensity = 0.05
+
+[node name="Moon" parent="." type="DirectionalLight3D"]
+rotation = vec3(-1.05, 0.5, 0)
+color = color(0.84, 0.88, 1, 1)
+energy = 1.9
+shadow = true
+shadow_extent = 30
+shadow_far = 140
+
+[node name="Lamp" parent="." type="DirectionalLight3D"]
+rotation = vec3(-0.7, -2.4, 0)
+color = color(1, 0.84, 0.62, 1)
+energy = 0.55
+
+[node name="Camera" parent="." type="Camera3D"]
+position = vec3(0, 22, 14.6)
+fov = 34
+near = 1
+far = 140

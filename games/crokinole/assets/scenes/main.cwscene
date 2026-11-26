@@ -1,0 +1,54 @@
+[scene format=1]
+
+; crokinole's room: a camera, the lamp over the table and the soft fill. The board and the table are built in code
+; (src/view.c) under Main.
+[node name="Main" type="Node3D"]
+
+[node name="Camera" parent="." type="Camera3D"]
+position = vec3(0, 0.8, 0.7)
+fov = 34
+near = 0.05
+far = 12
+
+; the lamp over the table: a warm pool of light, the one shadow (the discs', the pegs', the rail's)
+[node name="Lamp" parent="." type="SpotLight3D"]
+position = vec3(0.12, 1.45, 0.25)
+rotation = vec3(-1.45, 0, 0)
+color = color(1, 0.86, 0.68, 1)
+energy = 12
+range = 4
+decay = 2
+angle = 0.56
+penumbra = 0.75
+shadow = true
+shadow_size = 2048
+shadow_bias = -0.0002
+shadow_normal_bias = 0.0
+
+; a cool fill from the window side, no shadow
+[node name="Fill" parent="." type="DirectionalLight3D"]
+rotation = vec3(-0.6, 2.4, 0)
+color = color(0.7, 0.78, 1, 1)
+energy = 0.35
+
+[node name="Env" parent="." type="WorldEnvironment"]
+background = color(0.018, 0.014, 0.012, 1)
+ambient_color = color(0.9, 0.8, 0.7, 1)
+ambient_energy = 0.08
+sky_color = color(0.55, 0.5, 0.45, 1)
+ground_color = color(0.12, 0.07, 0.04, 1)
+hemi_energy = 0.22
+
+[node name="Post" parent="." type="PostProcess"]
+msaa = 4
+tonemap = AGX
+exposure = 1.1
+bloom = true
+bloom_intensity = 0.06
+bloom_threshold = 1.2
+ssao = true
+ssao_radius = 0.02
+ssao_intensity = 1.0
+vignette = true
+vignette_intensity = 0.55
+vignette_smoothness = 0.55

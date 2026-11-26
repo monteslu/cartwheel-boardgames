@@ -1,0 +1,139 @@
+[
+  {
+    "name": "smokestack-cpu-game",
+    "app": "smokestack_auto",
+    "frames": 1200,
+    "hosts": [
+      "native",
+      "romdev"
+    ],
+    "webgpu": true,
+    "fields": [
+      "rl.games_done",
+      "rl.decisions",
+      "rl.cpu_moves",
+      "rl.pad_moves",
+      "rl.winner",
+      "rl.score",
+      "rl.hash"
+    ],
+    "expect": {
+      "rl.games_done": 1,
+      "rl.pad_moves": 0
+    },
+    "note": "the self-playing cart: three CPUs (Normal, Hard, Easy) on the large valley, every choice entered by pressing the pad's actions toward the highlighted plaque, card or board site; a full game ends with a legal winner inside the frame budget and both GPU hosts reach the same state hash and scores. Control: the run one frame short differs"
+  },
+  {
+    "name": "smokestack-cpu-game-4p",
+    "app": "smokestack_auto",
+    "frames": 1500,
+    "env": {
+      "SMOKESTACK_SEATS": "c1,c2,c0,c1"
+    },
+    "hosts": [
+      "native",
+      "romdev"
+    ],
+    "webgpu": true,
+    "fields": [
+      "rl.games_done",
+      "rl.decisions",
+      "rl.cpu_moves",
+      "rl.pad_moves",
+      "rl.winner",
+      "rl.score",
+      "rl.hash"
+    ],
+    "expect": {
+      "rl.games_done": 1,
+      "rl.pad_moves": 0
+    },
+    "note": "four CPUs (Normal, Hard, Easy, Normal): a full four-player game ends with a legal winner, both GPU hosts agree. Control: the run one frame short differs"
+  },
+  {
+    "name": "smokestack-cpu-game-2p",
+    "app": "smokestack_auto",
+    "frames": 1100,
+    "env": {
+      "SMOKESTACK_SEATS": "c2,c0"
+    },
+    "hosts": [
+      "native",
+      "romdev"
+    ],
+    "webgpu": true,
+    "fields": [
+      "rl.games_done",
+      "rl.decisions",
+      "rl.cpu_moves",
+      "rl.pad_moves",
+      "rl.winner",
+      "rl.score",
+      "rl.hash"
+    ],
+    "expect": {
+      "rl.games_done": 1,
+      "rl.pad_moves": 0
+    },
+    "note": "two CPUs (Hard, Easy) on the small valley: a full two-player game ends with a legal winner, both GPU hosts agree. Control: the run one frame short differs"
+  },
+  {
+    "name": "smokestack-idle-seat",
+    "app": "smokestack",
+    "frames": 600,
+    "env": {
+      "SMOKESTACK_SEATS": "c1,p",
+      "SMOKESTACK_SEED": "7"
+    },
+    "controlEnv": {
+      "SMOKESTACK_SEATS": "p,c1",
+      "SMOKESTACK_SEED": "7"
+    },
+    "hosts": [
+      "native",
+      "romdev"
+    ],
+    "webgpu": true,
+    "fields": [
+      "rl.decisions",
+      "rl.cpu_moves",
+      "rl.turn",
+      "rl.help"
+    ],
+    "expect": {
+      "rl.decisions": 1,
+      "rl.cpu_moves": 1,
+      "rl.turn": 1,
+      "rl.help": 1
+    },
+    "note": "a CPU (Normal) first and a person who never touches the pad (the how-to-play card still up): the CPU makes its opening bid under the card and the game waits for the person. Control: the person sits first instead, the idle seat is to move, and nothing is played (0 decisions)"
+  },
+  {
+    "name": "smokestack-newcomer",
+    "app": "smokestack",
+    "frames": 2000,
+    "input": "smokestack-newcomer.json",
+    "controlInput": "smokestack-newcomer-control.json",
+    "env": {
+      "SMOKESTACK_SEATS": "p,c0",
+      "SMOKESTACK_SEED": "11",
+      "SMOKESTACK_FAST": "1"
+    },
+    "hosts": [
+      "native",
+      "romdev"
+    ],
+    "webgpu": true,
+    "fields": [
+      "rl.games_done",
+      "rl.decisions",
+      "rl.pad_moves",
+      "rl.cpu_moves",
+      "rl.hash"
+    ],
+    "expect": {
+      "rl.games_done": 1
+    },
+    "note": "a newcomer on one pad against CPU Easy, using only what the screen offers: the confirm the how-to-play card and every prompt name, every 26 frames, which closes the card and then takes whatever the highlighted plaque, card or board site offers; a full game ends inside the budget (every move legal by construction: only legal choices are lit). Control: the same presses on the back action, which the prompts offer only to take a tile back, so no game is played"
+  }
+]

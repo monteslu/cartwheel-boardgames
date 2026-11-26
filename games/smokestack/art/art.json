@@ -1,0 +1,25 @@
+{
+  "icon": "icon.png",
+  "cover": "cover.jpg",
+  "background": "background.jpg",
+  "logo": "logo.png",
+  "title": "title.jpg",
+  "screenshots": [
+    {
+      "path": "shot-1.jpg",
+      "label": "Round two with four players: the first links laid between towns and cities across the large valley, a train on its run"
+    },
+    {
+      "path": "shot-2.jpg",
+      "label": "Round four: track spreading across the valley while a train hauls a good to the city that wants it"
+    },
+    {
+      "path": "shot-3.jpg",
+      "label": "The final count: points, finished links, money and shares added up for four railways"
+    },
+    {
+      "path": "shot-4.jpg",
+      "label": "Two players in the last round on the small valley, their track winding round the hills and over the river"
+    }
+  ]
+}

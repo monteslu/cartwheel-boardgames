@@ -1,0 +1,15 @@
+Facet (games/facet): credits and licences
+
+Inspired by Splendor.
+
+Code, rules text, the card set and all art: this repository (MIT, see LICENSE). The commissions and patrons are
+generated and balanced by tools/gen-cards.mjs (src/cards_data.h, assets/cards.json); the card faces, backs and
+patron tiles are painted by code in src/main.c, the table and pieces are built in code.
+
+The stones' cuts (src/cuts.c, src/cuts.h) come from the jewels game in even-more-cartwheel-examples, by the same
+author (MIT).
+
+Font: Cinzel (assets/fonts/Cinzel.ttf), copyright 2020 The Cinzel Project Authors, SIL Open Font License 1.1
+(assets/fonts/Cinzel-OFL.txt).
+
+Engine: cartwheel-engine (MIT), with its own third-party notices.

@@ -1,0 +1,33 @@
+# r187 program states firsthearth draws (cmake/programs.cmake, tools/programs.mjs)
+# surveyed (tools/programs.mjs): 18 state(s) the runs drew
+physical+map+rep+shadow+l2001+s100
+physical+map+rep+shadow+l2001+s100+xplain
+depth+xplain
+physical+shadow+l2001+s100
+physical+trans+l2001
+standard+l2001
+physical+instbig+shadow+l2001+s100
+physical+map+rep+instbig+shadow+l2001+s100
+physical+trans+shadow+l2001+s100
+standard+instbig+l2001
+physical+shadow+l2001+s100+xplain
+physical+instbig+shadow+l2001+s100+xplain
+physical+map+rep+instbig+shadow+l2001+s100+xplain
+standard+l2001+xplain
+physical+trans+l2001+xplain
+physical+trans+shadow+l2001+s100+xplain
+standard+instbig+l2001+xplain
+depth+instbig+xplain
+# closure (tools/programs.mjs): 12 state(s), the surveyed materials in the environments surveyed for their class
+physical+instbig+l2001
+physical+instbig+l2001+xplain
+physical+l2001
+physical+l2001+xplain
+physical+map+rep+instbig+l2001
+physical+map+rep+instbig+l2001+xplain
+physical+map+rep+l2001
+physical+map+rep+l2001+xplain
+standard+instbig+shadow+l2001+s100
+standard+instbig+shadow+l2001+s100+xplain
+standard+shadow+l2001+s100
+standard+shadow+l2001+s100+xplain

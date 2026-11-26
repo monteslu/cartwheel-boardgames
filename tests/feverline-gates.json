@@ -1,0 +1,88 @@
+[
+  {
+    "name": "feverline-cpu-game",
+    "app": "feverline_auto",
+    "frames": 6000,
+    "hosts": [
+      "native",
+      "romdev"
+    ],
+    "webgpu": true,
+    "fields": [
+      "feverline.done_once",
+      "feverline.cpu_moves",
+      "feverline.decisions",
+      "feverline.result",
+      "feverline.cures",
+      "feverline.outbreaks",
+      "feverline.hash"
+    ],
+    "expect": {
+      "feverline.done_once": 1
+    },
+    "note": "the self-playing cart: a team of four Normal CPUs on the Normal setup, every action entered by pressing the pad's actions toward the highlighted city or action; a full game ends with a result (the cart then plays match after match: done_once says one ended) (cured or lost) inside the frame budget, and both GPU hosts reach the same state hash. Control: the run one frame short differs. Frames within 1.2% of pixels: the glowing cubes, halos and bloom differ a little between GL and WebGPU",
+    "maxGt16": 0.012
+  },
+  {
+    "name": "feverline-idle-seat",
+    "app": "feverline",
+    "frames": 1500,
+    "env": {
+      "FEVERLINE_SEATS": "c1,p",
+      "FEVERLINE_SETUP": "0",
+      "FEVERLINE_SEED": "7"
+    },
+    "controlEnv": {
+      "FEVERLINE_SEATS": "p,c1",
+      "FEVERLINE_SETUP": "0",
+      "FEVERLINE_SEED": "7"
+    },
+    "hosts": [
+      "native",
+      "romdev"
+    ],
+    "webgpu": true,
+    "fields": [
+      "feverline.decisions",
+      "feverline.cpu_moves",
+      "feverline.agent",
+      "feverline.turn"
+    ],
+    "expect": {
+      "feverline.decisions": 4,
+      "feverline.cpu_moves": 4,
+      "feverline.agent": 1,
+      "feverline.turn": 1
+    },
+    "note": "a CPU agent (Normal) first and a person who never touches the pad (the how-to-play card still open): the CPU takes its four actions under the card, the cards are drawn and the fever spreads, and the game waits for the person's agent. Control: the person's agent goes first instead, and nothing is played (0 decisions). Frames within 1.2% of pixels: the glowing cubes, halos and bloom differ a little between GL and WebGPU",
+    "maxGt16": 0.012
+  },
+  {
+    "name": "feverline-newcomer",
+    "app": "feverline",
+    "frames": 14000,
+    "input": "feverline-newcomer.json",
+    "controlInput": "feverline-newcomer-control.json",
+    "env": {
+      "FEVERLINE_SEATS": "p",
+      "FEVERLINE_SEED": "11",
+      "FEVERLINE_FAST": "1"
+    },
+    "hosts": [
+      "native",
+      "romdev"
+    ],
+    "webgpu": true,
+    "fields": [
+      "feverline.games_done",
+      "feverline.decisions",
+      "feverline.result",
+      "feverline.hash"
+    ],
+    "expect": {
+      "feverline.games_done": 1
+    },
+    "note": "a newcomer alone on one pad, using only what the screen offers: the confirm press the setup card, the how-to-play card and every prompt name, every 20 frames. It begins on the setup card's highlighted choice (Intro, two agents), closes the how-to card, then takes the highlighted city or action each time (the cursor starts on the planner's suggestion) and the highlighted card when a hand is over the limit; a full game ends inside the budget (every move legal by construction: only legal targets are offered). Control: the same presses on the back action, which no prompt offers on the setup card, so the game never begins. Frames within 1.2% of pixels: the glowing cubes, halos and bloom differ a little between GL and WebGPU",
+    "maxGt16": 0.012
+  }
+]

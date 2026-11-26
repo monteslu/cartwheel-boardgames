@@ -1,0 +1,13 @@
+{
+  "icon": "icon.png",
+  "cover": "cover.jpg",
+  "background": "background.jpg",
+  "logo": "logo.png",
+  "title": "title.jpg",
+  "screenshots": [
+    { "path": "shot-1.jpg", "label": "Three computer guilds mid-game: the market of commissions, the tray of traced stones and each guild's mat" },
+    { "path": "shot-2.jpg", "label": "A person's turn: a commission chosen and lifted, the Set aside plaque lit and the move named over the mat" },
+    { "path": "shot-3.jpg", "label": "Early in a game: each stone's stack in the tray with its count, the piles that may be taken two at a time in gold" },
+    { "path": "shot-4.jpg", "label": "A finished match: the winner, every guild's points, commissions and patrons" }
+  ]
+}

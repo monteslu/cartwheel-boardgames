@@ -1,0 +1,27 @@
+# r187 program states kitdemo draws (cmake/programs.cmake, tools/programs.mjs)
+# surveyed (tools/programs.mjs): 2 state(s) the runs drew
+standard+l1001+xplain
+standard+l1001
+# surveyed (tools/programs.mjs): 10 state(s) the runs drew
+depth+instbig+xplain
+depth+xplain
+standard+shadow+l1001+xplain
+standard+map+shadow+l1001+xplain
+standard+map+instbig+shadow+l1001+xplain
+standard+instbig+l1001+xplain
+standard+shadow+l1001
+standard+map+shadow+l1001
+standard+map+instbig+shadow+l1001
+standard+instbig+l1001
+# closure (tools/programs.mjs): 6 state(s), the surveyed materials in the environments surveyed for their class
+standard+instbig+shadow+l1001
+standard+instbig+shadow+l1001+xplain
+standard+map+instbig+l1001
+standard+map+instbig+l1001+xplain
+standard+map+l1001
+standard+map+l1001+xplain
+# surveyed (tools/programs.mjs): 4 state(s) the runs drew
+standard+map+trans+shadow+l1001+xplain
+standard+trans+shadow+l1001+xplain
+standard+map+trans+shadow+l1001
+standard+trans+shadow+l1001

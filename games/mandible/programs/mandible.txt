@@ -1,0 +1,17 @@
+# r187 program states mandible draws (cmake/programs.cmake, tools/programs.mjs)
+# surveyed (tools/programs.mjs): 10 state(s) the runs drew
+standard+shadow+l1101+s100+xplain
+standard+instbig+shadow+l1101+s100+xplain
+depth+instbig+xplain
+depth+xplain
+standard+vcol+instbig+shadow+l1101+s100+xplain
+standard+vcol+shadow+l1101+s100+xplain
+standard+shadow+l1101+s100
+standard+instbig+shadow+l1101+s100
+standard+vcol+instbig+shadow+l1101+s100
+standard+vcol+shadow+l1101+s100
+# surveyed (tools/programs.mjs): 2 state(s) the runs drew
+basic+instbig
+standard+vcol+trans+shadow+l1101+s100+xplain
+# surveyed (tools/programs.mjs): 1 state(s) the runs drew
+standard+vcol+trans+shadow+l1101+s100

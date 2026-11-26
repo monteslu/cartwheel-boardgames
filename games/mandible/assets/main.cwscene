@@ -1,0 +1,36 @@
+[scene format=1]
+
+[node name="World" type="Node3D"]
+
+[node name="Env" parent="." type="WorldEnvironment"]
+background = color(0.03, 0.025, 0.02, 1)
+ambient_energy = 0.12
+sky_color = color(0.70, 0.78, 0.92, 1)
+ground_color = color(0.28, 0.18, 0.10, 1)
+hemi_energy = 0.35
+
+[node name="Post" parent="." type="PostProcess"]
+tonemap = ACES_FILMIC
+ssao = true
+ssao_radius = 0.35
+ssao_intensity = 1.2
+vignette = true
+vignette_intensity = 0.45
+
+[node name="Sun" parent="." type="DirectionalLight3D"]
+rotation = vec3(-0.95, 0.65, 0)
+energy = 4.2
+color = color(1, 0.93, 0.82, 1)
+shadow = true
+
+[node name="Fill" parent="." type="OmniLight3D"]
+position = vec3(-7, 6, 7)
+energy = 9
+color = color(0.75, 0.85, 1, 1)
+range = 30
+
+[node name="Camera" parent="." type="Camera3D"]
+position = vec3(0, 7.5, 5)
+fov = 40
+near = 0.1
+far = 80

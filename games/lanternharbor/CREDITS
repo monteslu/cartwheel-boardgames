@@ -1,0 +1,12 @@
+Lantern Harbor (games/lanternharbor)
+
+Inspired by Puerto Rico.
+
+Design, code and art: Luis Montes. The rules, the job, plot and building names and their wording are this game's
+own. The board, deck and quay textures are drawn by games/lanternharbor/art/make-art.mjs; the job, plot and
+building cards, the boats, barrels, lanterns and townsfolk are drawn by the game's code (src/view.c); the sounds
+are synthesised in src/view.c.
+
+Built with cartwheel-engine and three.c (MIT; three.js is MIT, Copyright 2010-2026 three.js authors).
+The board-game kit (games/common/boardkit) is part of this repository (MIT).
+Font: Fira Sans (the engine's built-in sans), SIL Open Font License 1.1.

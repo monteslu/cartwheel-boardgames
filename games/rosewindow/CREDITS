@@ -1,0 +1,12 @@
+Rose Window (folder rosewindow)
+
+Inspired by Sagrada.
+
+Design, code and art: Luis Montes. Every texture (oak table, wool runner, die faces, window panes, the light the
+panes throw) is drawn by games/rosewindow/art/make-art.mjs; the window frames are generated and rated by
+games/rosewindow/art/make-frames.mjs; the goal and tool cards are painted in src/view.c; the sounds are synthesised
+in src/view.c.
+
+Built with cartwheel-engine and three.c (MIT; three.js is MIT, Copyright 2010-2026 three.js authors).
+The board-game kit (games/common/boardkit) is part of this repository (MIT).
+Font: Fira Sans (the engine's built-in sans), SIL Open Font License 1.1.

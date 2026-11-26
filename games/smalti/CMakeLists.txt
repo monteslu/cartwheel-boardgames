@@ -1,0 +1,16 @@
+# smalti (Smalti): draft coloured glass from trays, stage it, set it into a 5x5 mosaic.
+#   smalti             the game
+#   smalti_auto        the self-playing cart (CPU seats on every seat, cart-smoke runs it)
+#   smalti_rules_test  the rules, the CPU levels and full CPU games headless (native only; tests/smalti-rules.mjs)
+set(MS_RULES src/rules.c src/cpu.c)
+set(MS_SRC src/main.c src/game.c src/view.c src/layout.c ${MS_RULES})
+set(MS_META TITLE "Smalti" DESCRIPTION "Draft coloured glass and set it into a Venetian mosaic, against friends or the computer." AUTHOR "Luis Montes")
+set(MS_PROGRAMS PROGRAMS ${CMAKE_CURRENT_SOURCE_DIR}/programs/smalti.txt)
+bk_add_app(smalti SOURCES ${MS_SRC} ASSETS ${CMAKE_CURRENT_SOURCE_DIR}/assets ART ${CMAKE_CURRENT_SOURCE_DIR}/art ${MS_PROGRAMS} ${MS_META})
+bk_add_app(smalti_auto SOURCES ${MS_SRC} ASSETS ${CMAKE_CURRENT_SOURCE_DIR}/assets ${MS_PROGRAMS} ${MS_META})
+target_compile_definitions(smalti_auto PRIVATE SMALTI_AUTOPILOT=1)
+if(NOT CW_CART)
+  add_executable(smalti_rules_test tests/rules_test.c ${MS_RULES} ${BOARDKIT_RULES_SOURCES})
+  target_include_directories(smalti_rules_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src ${BOARDKIT_DIR}/..)
+  target_link_libraries(smalti_rules_test PRIVATE cartwheel m)
+endif()

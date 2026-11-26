@@ -1,0 +1,13 @@
+{
+  "icon": "icon.png",
+  "cover": "cover.jpg",
+  "background": "background.jpg",
+  "logo": "logo.png",
+  "title": "title.jpg",
+  "screenshots": [
+    { "path": "shot-1.jpg", "label": "Round three: four boards of coloured glass around the round trays, a newly set tile showing its points" },
+    { "path": "shot-2.jpg", "label": "Round five: the mosaics filling up and the points counting up as each full row sets a tile" },
+    { "path": "shot-3.jpg", "label": "Early in a game: glass drafted from the trays, the leftovers gathered on the dark floor in the middle" },
+    { "path": "shot-4.jpg", "label": "Round three: staging rows filling on every board while the computer seats take their turns" }
+  ]
+}

@@ -1,0 +1,109 @@
+[
+  {
+    "name": "smalti-cpu-game",
+    "note": "The self-playing cart: four computer seats (Hard, Normal, Normal, Easy) play a whole game by pressing the pad's actions, to the results, with the same scores natively and in the cart on GL and WebGPU. The control stops the same run at frame 2700, before the last round is set.",
+    "app": "smalti_auto",
+    "frames": 3200,
+    "hosts": [
+      "native",
+      "romdev"
+    ],
+    "webgpu": true,
+    "fields": [
+      "game.over",
+      "game.round",
+      "game.score",
+      "game.moves",
+      "game.matches_done"
+    ],
+    "expect": {
+      "game.over": 1,
+      "game.round": 5,
+      "game.score": [
+        56,
+        49,
+        35,
+        42
+      ],
+      "game.moves": 81,
+      "game.matches_done": 1
+    },
+    "controlFrames": 2700
+  },
+  {
+    "name": "smalti-newcomer",
+    "note": "A newcomer on pad 1 who knows only what the screen shows (SMALTI_NEWCOMER: hop a few times, then walk the cursor to a kind of move it has not made yet when the table offers one, choose, place where the ghost is) finishes a whole game against a Normal computer, making every kind of move at least once: a group from a tray and from the centre, each onto a row and straight to the breakage strip. The control is the same player lost (SMALTI_NEWCOMER=lost: it hops but never chooses), who never makes a move.",
+    "app": "smalti",
+    "frames": 3400,
+    "env": {
+      "SMALTI_SEATS": "p,c1",
+      "SMALTI_NEWCOMER": "1",
+      "SMALTI_FAST": "1",
+      "SMALTI_SEED": "3"
+    },
+    "controlEnv": {
+      "SMALTI_SEATS": "p,c1",
+      "SMALTI_NEWCOMER": "lost",
+      "SMALTI_FAST": "1",
+      "SMALTI_SEED": "3"
+    },
+    "hosts": [
+      "native",
+      "romdev"
+    ],
+    "webgpu": true,
+    "fields": [
+      "game.over",
+      "game.round",
+      "game.newcomer_moves",
+      "game.moves",
+      "game.score",
+      "game.newcomer_kinds",
+      "game.person_kinds"
+    ],
+    "expect": {
+      "game.over": 1,
+      "game.round": 5,
+      "game.newcomer_moves": 27,
+      "game.moves": 53,
+      "game.newcomer_kinds": 4
+    }
+  },
+  {
+    "name": "smalti-idle-seat",
+    "note": "The newcomer game again with a second pad connected that belongs to no seat and presses buttons all game, the how-to card's button among them: it must change nothing and block nothing (the same moves and scores as smalti-newcomer, and the card never opened). The control presses the same buttons on the newcomer's own pad: they open the card (the newcomer, which steers by what the screen shows, closes it again and still finishes), so the count of openings tells the runs apart.",
+    "app": "smalti",
+    "frames": 3400,
+    "env": {
+      "SMALTI_SEATS": "p,c1",
+      "SMALTI_NEWCOMER": "1",
+      "SMALTI_FAST": "1",
+      "SMALTI_SEED": "3"
+    },
+    "input": "smalti-idle-pad2.json",
+    "controlInput": "smalti-idle-pad1.json",
+    "hosts": [
+      "native",
+      "romdev"
+    ],
+    "webgpu": true,
+    "fields": [
+      "game.over",
+      "game.round",
+      "game.newcomer_moves",
+      "game.moves",
+      "game.score",
+      "game.newcomer_kinds",
+      "game.person_kinds",
+      "game.help_opens"
+    ],
+    "expect": {
+      "game.over": 1,
+      "game.round": 5,
+      "game.newcomer_moves": 27,
+      "game.moves": 53,
+      "game.newcomer_kinds": 4,
+      "game.help_opens": 0
+    }
+  }
+]

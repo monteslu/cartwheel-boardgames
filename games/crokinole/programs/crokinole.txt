@@ -1,0 +1,14 @@
+# r187 program states crokinole draws (cmake/programs.cmake, tools/programs.mjs)
+# surveyed (tools/programs.mjs): 12 state(s) the runs drew
+standard+map+rep+l1011+xplain
+physical+map+cc+l1011+xplain
+standard+l1011+xplain
+physical+map+rep+ds+cc+l1011+xplain
+physical+map+rep+sheen+l1011+xplain
+standard+bs+l1011+xplain
+standard+map+rep+shadow+l1011+s001
+physical+map+shadow+cc+l1011+s001
+standard+shadow+l1011+s001
+physical+map+rep+shadow+ds+cc+l1011+s001
+physical+map+rep+shadow+sheen+l1011+s001
+standard+shadow+bs+l1011+s001

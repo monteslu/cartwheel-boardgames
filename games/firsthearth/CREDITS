@@ -1,0 +1,11 @@
+First Hearth (firsthearth)
+
+Inspired by Stone Age.
+
+Game design, rules text, cards, buildings, code and art: Luis Montes. The rules are restated in our own words,
+and the lore cards and buildings are our own designs (games/firsthearth/data/firsthearth-data.mjs, balance-checked by
+games/firsthearth/tools/gen-data.mjs). Every texture is drawn by games/firsthearth/tools/make-textures.mjs; the sounds are
+synthesised in code.
+
+Built with cartwheel-engine and three.c (MIT). The font is the engine's built-in sans (see the engine's NOTICE).
+Licence: MIT (the repository's LICENSE).

@@ -1,0 +1,79 @@
+[
+  {
+    "name": "crokinole-cpu-2p",
+    "app": "crokinole_auto",
+    "frames": 9000,
+    "env": { "CRK_SEATS": "c2,c0", "CRK_TARGET": "1", "CRK_SEED": "7" },
+    "controlEnv": { "CRK_SEED": "8" },
+    "maxGt16": 0.02,
+    "fields": ["match.finished", "match.winner", "match.rounds", "match.score", "seat.shots", "seat.fouls", "game.checks", "game.twenties", "game.contacts"],
+    "expect": { "match.finished": 1 },
+    "hosts": ["native", "romdev"],
+    "webgpu": { "hosts": ["native", "romdev"] },
+    "note": "A whole match of CPUs only (Hard against Easy, one round to win): it must finish with a winner, every shot's playback on screen ending in the very state the match holds (game.checks counts them; a mismatch stops the cart), and every host must agree on the shots, the fouls, the twenties and the score. The control is another seed: another match."
+  },
+  {
+    "name": "crokinole-cpu-3p",
+    "app": "crokinole_auto",
+    "frames": 9000,
+    "env": { "CRK_SEATS": "c1,c0,c2", "CRK_TARGET": "1", "CRK_SEED": "5" },
+    "controlEnv": { "CRK_SEED": "6" },
+    "maxGt16": 0.02,
+    "fields": ["match.finished", "match.winner", "match.rounds", "match.score", "seat.shots", "seat.fouls", "game.checks", "game.twenties"],
+    "expect": { "match.finished": 1 },
+    "hosts": ["native", "romdev"],
+    "webgpu": { "hosts": ["native", "romdev"] },
+    "note": "Three CPU seats (Normal, Easy, Hard), each its own side, one round: it finishes with a winner on every host alike. The control is another seed."
+  },
+  {
+    "name": "crokinole-cpu-4p",
+    "app": "crokinole_auto",
+    "frames": 9000,
+    "env": { "CRK_SEATS": "c1,c0,c2,c1", "CRK_TARGET": "1", "CRK_SEED": "7" },
+    "controlEnv": { "CRK_SEED": "9" },
+    "maxGt16": 0.02,
+    "fields": ["match.finished", "match.winner", "match.rounds", "match.score", "seat.shots", "seat.fouls", "game.checks", "game.twenties"],
+    "expect": { "match.finished": 1 },
+    "hosts": ["native", "romdev"],
+    "webgpu": { "hosts": ["native", "romdev"] },
+    "note": "Four CPU seats as two teams of partners sitting opposite, one round: it finishes with a winning team on every host alike. The control is another seed."
+  },
+  {
+    "name": "crokinole-idle",
+    "app": "crokinole",
+    "frames": 20400,
+    "env": { "CRK_SEATS": "p,c1", "CRK_TARGET": "1", "CRK_SEED": "9", "CRK_IDLE": "2", "CW_RUN_TIMEOUT_MS": "600000" },
+    "controlEnv": { "CRK_IDLE": "0" },
+    "fields": ["match.finished", "game.standby_turns", "game.shots", "game.overlay"],
+    "expect": { "match.finished": 1 },
+    "hosts": ["native", "romdev"],
+    "webgpu": { "hosts": ["native", "romdev"] },
+    "note": "A person joins and walks away: nobody touches anything. After the idle time (2 s here, 45 s in play) the how-to card closes and the computer plays each of the person's turns, so the CPU across the board is never stuck and the match finishes. The control never steps in for an idle seat (CRK_IDLE=0): the match cannot finish. Its 20400 frames are the longest native run here, so CW_RUN_TIMEOUT_MS gives the native host ten minutes in place of the gate runner's two: on a busy GPU (or the software renderer of --cpu) the whole match takes longer than two minutes and was stopped mid-match."
+  },
+  {
+    "name": "crokinole-pad",
+    "app": "crokinole",
+    "frames": 2200,
+    "input": "crokinole-pad.json",
+    "controlInput": "crokinole-pad-control.json",
+    "env": { "CRK_SEATS": "p,c1", "CRK_TARGET": "1", "CRK_SEED": "3", "CRK_IDLE": "0" },
+    "fields": ["game.pad_shots", "game.shots", "game.replays", "game.hash", "seat.shots", "seat.fouls"],
+    "expect": { "game.pad_shots": 2, "game.replays": 1 },
+    "hosts": ["native", "romdev"],
+    "webgpu": { "hosts": ["native", "romdev"] },
+    "note": "Two shots on the pad alone (tests/crokinole-inputs.mjs writes the script): the how-to card closed with south, the aim turned on a shoulder, the disc slid on the d-pad, south held to charge and let go; between them the last shot replayed (north). The control never charges: no shot is made."
+  },
+  {
+    "name": "crokinole-touch",
+    "app": "crokinole",
+    "frames": 600,
+    "input": "crokinole-touch.json",
+    "controlInput": "crokinole-touch-control.json",
+    "env": { "CRK_SEATS": "p,c1", "CRK_TARGET": "1", "CRK_SEED": "3", "CRK_IDLE": "0" },
+    "fields": ["game.pointer_shots", "game.shots", "game.hash", "aim.pos"],
+    "expect": { "game.pointer_shots": 1 },
+    "hosts": ["native", "romdev"],
+    "webgpu": { "hosts": ["native", "romdev"] },
+    "note": "A shot by touch (the pad only closes the how-to card): one finger slides the disc along the shooting line, a second drags back from the disc and lets go. The pointer is the engine's recorded channel (cw_input_pointer), so the shot is recorded and hashed like a press. The control lands both fingers on the table beside the board: no shot."
+  }
+]

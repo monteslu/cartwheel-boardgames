@@ -1,0 +1,80 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  # pull requests: one run per branch, the newest wins. Pushes: one group per commit, so a push to main never cancels
+  # the run before it (a v* tag's release waits for its commit's run on main)
+  group: ci-${{ github.ref }}-${{ github.event_name == 'pull_request' && 'pr' || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+# The game list is games.txt (scripts/games.sh reads it); nothing here names a game.
+jobs:
+  carts:
+    name: Carts
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # the tags, for the carts' version
+          filter: tree:0
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - name: System packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends cmake ninja-build mesa-vulkan-drivers libvulkan1 libgles2 libegl1 libegl-mesa0 libgl1-mesa-dri zip unzip
+      - name: Cache dependencies
+        uses: actions/cache@v6
+        with:
+          path: deps
+          key: deps-sdk-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('scripts/deps.lock', 'scripts/fetch-deps.sh') }}
+      - name: Fetch the SDKs
+        run: scripts/fetch-deps.sh
+      - name: The game list
+        run: |
+          echo "GAMES=$(scripts/games.sh | tr '\n' ' ')" >> "$GITHUB_ENV"
+          echo "TARGETS_LIST=$(scripts/games.sh targets | tr '\n' ' ')" >> "$GITHUB_ENV"
+      # controls are shown with the engine's button prompts (cartwheel/prompt.h), never a maker's button names
+      - name: Check prompts
+        run: |
+          # shellcheck disable=SC2086,SC2046 # the game list splits into words on purpose
+          for g in $GAMES; do node deps/cartwheel-engine/tools/check-prompts.mjs games/$g || exit 1; done
+      # the board-game kit's headless tests, each with a control that must fail
+      - name: Kit tests
+        run: node tests/boardkit.mjs
+      # each game's own headless rules tests where it has them (tests/<game>-rules.mjs), each with its controls
+      - name: Game rules tests
+        run: |
+          # shellcheck disable=SC2086,SC2046 # the game list splits into words on purpose
+          for g in $GAMES; do if [ -f tests/$g-rules.mjs ]; then node tests/$g-rules.mjs || exit 1; fi; done
+      # pushes to main link the carts as releases ship (ThinLTO, wasm-opt); pull requests link dev carts
+      - name: Build the carts (each game, and its self-playing <game>_auto where it has one)
+        run: |
+          [ "${GITHUB_EVENT_NAME}" = pull_request ] || export RELEASE=1
+          # shellcheck disable=SC2086,SC2046 # the game list splits into words on purpose
+          TARGETS=cart-wgpu scripts/build.sh $TARGETS_LIST
+      # every release cart carries its launcher art (games/<game>/art); the control (no cover) must fail
+      - name: Cart art
+        run: node tests/cart-art.mjs
+      - name: Cart version
+        run: |
+          # shellcheck disable=SC2086,SC2046 # the game list splits into words on purpose
+          node tests/cart-version.mjs $GAMES
+      - name: Smoke test (each game's cart in wasmcart's Node host on lavapipe, WebGPU)
+        run: |
+          # shellcheck disable=SC2086,SC2046 # the game list splits into words on purpose
+          VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/lvp_icd.json node tests/cart-smoke.mjs --frames 60 $GAMES
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: cart-smoke
+          path: out/cart-smoke/
+          retention-days: 7

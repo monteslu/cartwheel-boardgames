@@ -1,0 +1,16 @@
+# lanternharbor (title: Lantern Harbor): take jobs, claim plots, raise a guild town, ship goods for lanterns.
+#   lanternharbor             the game
+#   lanternharbor_auto        the self-playing cart (CPU seats on every seat, cart-smoke runs it)
+#   lanternharbor_rules_test  the rules, the CPU levels and full CPU games headless (native only; tests/lanternharbor-rules.mjs)
+set(HB_RULES src/rules.c src/cpu.c)
+set(HB_SRC src/main.c src/game.c src/view.c src/layout.c ${HB_RULES})
+set(HB_META TITLE "Lantern Harbor" DESCRIPTION "Take a job each round, grow a harbour town of free guild craftspeople and ship its goods for lanterns, against friends or the computer." AUTHOR "Luis Montes")
+set(HB_PROGRAMS PROGRAMS ${CMAKE_CURRENT_SOURCE_DIR}/programs/lanternharbor.txt)
+bk_add_app(lanternharbor SOURCES ${HB_SRC} ASSETS ${CMAKE_CURRENT_SOURCE_DIR}/assets ART ${CMAKE_CURRENT_SOURCE_DIR}/art ${HB_PROGRAMS} ${HB_META})
+bk_add_app(lanternharbor_auto SOURCES ${HB_SRC} ASSETS ${CMAKE_CURRENT_SOURCE_DIR}/assets ${HB_PROGRAMS} ${HB_META})
+target_compile_definitions(lanternharbor_auto PRIVATE LANTERNHARBOR_AUTOPILOT=1)
+if(NOT CW_CART)
+  add_executable(lanternharbor_rules_test tests/rules_test.c ${HB_RULES} ${BOARDKIT_RULES_SOURCES})
+  target_include_directories(lanternharbor_rules_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src ${BOARDKIT_DIR}/..)
+  target_link_libraries(lanternharbor_rules_test PRIVATE cartwheel m)
+endif()

@@ -1,0 +1,9 @@
+[{"frame":1},
+{"frame":60,"buttons":["south"]},
+{"frame":64},
+{"frame":90,"touches":[{"id":1,"x":60,"y":700}]},
+{"frame":110,"touches":[{"id":1,"x":80,"y":700}]},
+{"frame":111},
+{"frame":140,"touches":[{"id":2,"x":60,"y":700}]},
+{"frame":170,"touches":[{"id":2,"x":90,"y":710}]},
+{"frame":171}]

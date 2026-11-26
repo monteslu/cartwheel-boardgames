@@ -1,0 +1,38 @@
+# r187 program states feverline draws (cmake/programs.cmake, tools/programs.mjs)
+# surveyed (tools/programs.mjs): the states feverline and feverline_auto drew
+depth+instbig+xplain
+depth+xplain
+physical+map+rep+shadow+l1011+s100+xplain
+standard+shadow+l1011+s100+xplain
+standard+instbig+shadow+l1011+s100+xplain
+physical+shadow+l1011+s100+xplain
+standard+instbig+l1011+xplain
+physical+instbig+shadow+l1011+s100+xplain
+basic+trans
+standard+l1011+xplain
+physical+trans+shadow+l1011+s100+xplain
+physical+map+rep+shadow+l1011
+standard+shadow+l1011
+standard+instbig+shadow+l1011
+physical+shadow+l1011
+standard+instbig+l1011
+physical+instbig+shadow+l1011
+standard+l1011
+physical+trans+shadow+l1011
+# closure (tools/programs.mjs): 6 state(s), the surveyed materials in the environments surveyed for their class
+physical+instbig+l1011
+physical+instbig+l1011+xplain
+physical+l1011
+physical+l1011+xplain
+physical+map+rep+l1011
+physical+map+rep+l1011+xplain
+standard+map+l1011
+standard+map+l1011+xplain
+standard+map+shadow+l1011
+standard+map+shadow+l1011+s100+xplain
+# surveyed (tools/programs.mjs): 1 state(s) the runs drew
+standard+map+instbig+shadow+l1011
+# closure (tools/programs.mjs): 3 state(s), the surveyed materials in the environments surveyed for their class
+standard+map+instbig+l1011
+standard+map+instbig+l1011+xplain
+standard+map+instbig+shadow+l1011+s100+xplain
