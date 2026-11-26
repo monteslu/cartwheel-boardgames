@@ -15,9 +15,9 @@
 #include "three.h"
 
 enum { A_LEFT, A_RIGHT, A_UP, A_DOWN, A_OK, A_BACK, A_HELP, A_COUNT };
-enum { UI_MAIN, UI_COUNT };
-/* what a target is */
-enum { KG_T_PLANT, KG_T_OWN, KG_T_FUEL, KG_T_COUNT, KG_T_CITY, KG_T_OPTION };
+enum { UI_MAIN, UI_COUNT, UI_SETUP };
+/* what a target is (a map plate and Begin: the setup card's) */
+enum { KG_T_PLANT, KG_T_OWN, KG_T_FUEL, KG_T_COUNT, KG_T_CITY, KG_T_OPTION, KG_T_MAP, KG_T_BEGIN };
 #define KG_MAX_TARGETS 48
 
 typedef struct kg_target {
@@ -42,6 +42,8 @@ typedef struct kg_game {
   bk_cpu *cpu[KC_MAX_P];
   int cpu_level[KC_MAX_P]; /* -1 a person */
   int players;
+  int map;    /* the map picked (kc_maps index); the setup card changes it until Begin */
+  bool setup; /* the setup card is up: people pick the map, the match has not begun (match NULL) */
   uint64_t seed;
   bool fast; /* a self-playing cart: short beats */
   bk_select *sel;
@@ -61,12 +63,15 @@ typedef struct kg_game {
   /* the moves people chose, by kind (KC_M_*), through the pad and through the pointer; the last one's kind */
   int pad_kinds[KC_M_DRAW], pointer_kinds[KC_M_DRAW], last_kind;
   int hide_kind; /* a test control: a move kind left off the table (0 none; KILOWATTCOUNTRY_TEST_HIDE) */
+  bool hide_maps; /* a test control: the setup card offers no map plates (KILOWATTCOUNTRY_TEST_HIDE=map) */
+  int map_picks;  /* maps picked on the setup card */
   uint64_t final_hash;
 } kg_game;
 
 void kg_actions_init(kg_game *g);
-/* a new match; cpu_level[i] -1 for a person */
-void kg_start(kg_game *g, int players, const int *cpu_level, uint64_t seed, bool fast);
+/* a new match on a map; cpu_level[i] -1 for a person. With setup (and a person seated) the setup card comes first:
+ * the people pick the map (starting on `map`) and Begin starts the match */
+void kg_start(kg_game *g, int players, const int *cpu_level, int map, uint64_t seed, bool fast, bool setup);
 void kg_free(kg_game *g);
 /* every fixed tick, before anything reads input */
 void kg_tick(kg_game *g);
@@ -78,5 +83,7 @@ bk_move kg_preview(const kg_game *g);
 const char *kg_seat_name(int seat);
 /* the option plates' row (bids, pass, done) */
 t3_vec3 kg_option_at(int i, int n);
+/* the seat that works the setup card (the first person) */
+int kg_setup_seat(const kg_game *g);
 
 #endif

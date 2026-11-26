@@ -4,7 +4,7 @@
  *   kilowattcountry_cpu_bench <games> <level seat 0> <level seat 1> [<level> <level>]   (0 Easy, 1 Normal, 2 Hard,
  *                                                                                         9 the playout policy alone)
  * Tuning: LV<level>="nodes,playout depth,mistake,reward scale" overrides a level (reward scale 0: the place reward); SEED=<n> the first game's seed.
- * MARGINS=1 prints each game's winning margin.
+ * MARGINS=1 prints each game's winning margin. MAP=<n> plays on that map (kc_maps order, default 0).
  *
  * Prints wins per level, average cities, plants bought, rounds, the step reached, the search time per decision and the
  * winning margin in evaluate units (what reward_scale in kc_cpu_options is set from).
@@ -34,6 +34,8 @@ int main(int argc, char **argv) {
   int lv[4];
   for (int i = 0; i < players; i++) lv[i] = atoi(argv[2 + i]);
   uint64_t seed0 = getenv("SEED") ? strtoull(getenv("SEED"), NULL, 10) : 1000;
+  int map = getenv("MAP") ? atoi(getenv("MAP")) : 0;
+  if (map < 0 || map >= KC_NMAPS) { fprintf(stderr, "MAP=%d: no such map (0..%d)\n", map, KC_NMAPS - 1); return 2; }
   bk_game g;
   kc_game(&g, players);
   int wins_by_level[10] = { 0 }, seats_by_level[10] = { 0 };
@@ -44,7 +46,7 @@ int main(int argc, char **argv) {
   int nmargin = 0;
   for (int k = 0; k < games; k++) {
     kc_state s;
-    kc_init(&s, players, seed0 + (uint64_t)k);
+    kc_init(&s, players, map, seed0 + (uint64_t)k);
     cw_rng rng;
     cw_rng_seed(&rng, seed0 * 31 + (uint64_t)k);
     int seat_level[4];
@@ -120,7 +122,7 @@ int main(int argc, char **argv) {
     step3_round += s3;
   }
   static const char *names[10] = { "Easy", "Normal", "Hard", "", "", "", "", "", "", "Playout" };
-  printf("%d players, %d games:", players, games);
+  printf("%s, %d players, %d games:", kc_maps[map].title, players, games);
   for (int l = 0; l < 10; l++)
     if (seats_by_level[l])
       printf("  %s wins %d/%d seats (%.0f%%), %.1f cities %.1f lit", names[l], wins_by_level[l], seats_by_level[l],

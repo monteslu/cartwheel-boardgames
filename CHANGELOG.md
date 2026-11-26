@@ -14,8 +14,14 @@ the pointer.
 - **Lantern Harbor:** each building's lantern value on a lantern, apart from its coin cost; goods as barrels with
   counts; score popups rise clear of the player names; computer players tuned for the winning margin. How to play
   and Credits on the title.
-- **Kilowatt Country:** city names placed clear of each other on dark pills, the set-aside plants large and face up,
-  larger fuel icons on the plant cards, money changes on the player panels, a weaker Easy so the levels stay apart.
+- **Kilowatt Country:** seven maps of real places in place of the made-up country: United States, Eastern States,
+  Great Lakes, France, Iberia, The Balkans and Central Europe, each with thirty real cities at their real spots on a
+  night map with real coasts, borders, lakes and rivers (GeoNames and Natural Earth data), links priced by the real
+  distance between cities, five regions per map. People choose the map on a setup card before the first round, with
+  the pad or the pointer. Smaller city plinths, and a thin leader line from a name that has to stand off from its
+  city; no name hides another city on any map. Also: city names placed clear of each other on dark pills, the
+  set-aside plants large and face up, larger fuel icons on the plant cards, money changes on the player panels, a
+  weaker Easy so the levels stay apart.
 - **Smalti:** colour pictures loaded as colour, clicks and taps in the recorded input.
 - **Mandible:** a larger, clearer last-move line in words, clicks and taps in the recorded input.
 

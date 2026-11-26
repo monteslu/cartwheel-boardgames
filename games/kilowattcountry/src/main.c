@@ -3,9 +3,12 @@
  * Test switches (cw_test_env):
  *   KILOWATTCOUNTRY_SEATS=c2,c1,...  skip the menus: p a person on a pad, h a hot seat, c0..c2 a CPU (bk_lobby_test_start)
  *   KILOWATTCOUNTRY_SEED=<n>         the match's seed (default from the frame the match began)
+ *   KILOWATTCOUNTRY_MAP=<key|n>      the map (usa, useast, lakes, france, iberia, balkans, central, or its index): skips
+ *                                    the setup card (without it people pick the map there, starting on the first)
  *   KILOWATTCOUNTRY_FAST=1           short beats (a self-playing run)
  *   BK_NO_HUD=1                      the table alone (the launcher art's key frames, tools/make-art.sh)
- * The kilowattcountry_auto cart starts four Normal CPUs with short beats and plays match after match. Both starts run in
+ * The kilowattcountry_auto cart starts four Normal CPUs with short beats and plays match after match, each on the next
+ * map (KILOWATTCOUNTRY_MAP holds it on one). Both starts run in
  * the shell's menu tick (bk_title_desc): a scene app's tree, and with it fixed_update, holds still outside play.
  * The title carries How to play and Credits as pages; How to play also opens over play (its action, or the pause item).
  *
@@ -13,11 +16,14 @@
  * seat), kc.cities (per seat), kc.powered (per seat), kc.hash (the match's state hash, low 32 bits), kc.matches,
  * kc.games_done, kc.moving, kc.lit (houses glowing), kc.label_overlaps (city names running into a name or on their own city, the
  * worst over every map; KILOWATTCOUNTRY_LABELS=below puts each under its city as before), kc.label_link_hits (names
- * over another city, a cost tag or a link), kc.label_rect (each name's rect, then each city's footprint), kc.cursor (the person's target), kc.ntargets, kc.help, kc.pointer_picks,
+ * over another city, a cost tag or a link), kc.label_strays (names hiding another city, or leaders over another city or name), kc.label_rect (each name's rect, then each city's footprint), kc.cursor (the person's target), kc.ntargets, kc.help, kc.pointer_picks,
  * kc.target_px (each target's canvas point: tests tap there), kc.target_kind (the move kind a confirm on each plays),
  * kc.pad_kinds and kc.pointer_kinds (people's moves by kind and input), kc.last_kind, kc.kinds_used (move kinds people
  * used), kc.nplants, kc.stored (fuel held, per seat), kc.auc_plant (its number), kc.auc_bid, kc.auc_in (seat bits).
- * KILOWATTCOUNTRY_TEST_HIDE=<open|pass|raise|drop|discard|fuel|done|build> leaves that move off the table (a control).
+ * kc.map (the map in use), kc.setup (the setup card is up), kc.map_picks (maps picked there), kc.label_maps (maps whose
+ * names the label check has placed so far; it covers every map, one a frame).
+ * KILOWATTCOUNTRY_TEST_HIDE=<open|pass|raise|drop|discard|fuel|done|build> leaves that move off the table, =map the setup
+ * card's map plates (controls).
  * Debug command `replay`: replay the match so far from its own input recording and compare the state
  * (kc.replay_match) and the input hash (kc.replay_hash_match); CW_TEST_SET_UNRECORDED is the engine's control. */
 #include <math.h>
@@ -44,7 +50,8 @@
 static struct {
   kg_game g;
   bool started, counted, pending_begin, pending_replay;
-  int players, lv[KC_MAX_P];
+  int players, lv[KC_MAX_P], map;
+  bool setup;
   uint64_t seed;
   bool fast;
   uint8_t *recording;
@@ -52,17 +59,19 @@ static struct {
   uint32_t want_hash, want_input;
   int32_t busy, mode, help, pointer_picks, replaying, replay_done, replay_match, replay_hash_match;
   int32_t target_px[2 * KG_MAX_TARGETS];
-  int32_t ticks, games_done, round, step, phase, turn, decisions, cpu_moves, over, winner, matches, moving, lit, cursor, ntargets, label_overlaps, label_hits;
+  int32_t ticks, games_done, round, step, phase, turn, decisions, cpu_moves, over, winner, matches, moving, lit, cursor, ntargets, label_overlaps, label_hits, label_strays;
   int32_t money[KC_MAX_P], cities[KC_MAX_P], powered[KC_MAX_P], nplants[KC_MAX_P], stored[KC_MAX_P];
   int32_t pad_kinds[KC_M_DRAW], pointer_kinds[KC_M_DRAW], last_kind, kinds_used, auc_plant, auc_bid, auc_in;
-  int32_t target_kind[KG_MAX_TARGETS], label_rect[8 * KC_NCITY];
+  int32_t target_kind[KG_MAX_TARGETS], label_rect[8 * KC_NCITY], map_now, setup_now, map_picks, label_maps;
   uint32_t hash;
   uint64_t frame_seed;
 } M;
 
 static const char *const CREDIT_LINES[] = {
   "Game design, code and art: Luis Montes, made with cartwheel-engine and three.c (MIT).",
-  "The map, the plants, the cards and the sounds are made by the game's own scripts.",
+  "The maps: city names and places from GeoNames (geonames.org, CC BY 4.0); land, borders, lakes and rivers from",
+  "Natural Earth (naturalearthdata.com, public domain). Picked, linked and drawn by the game's own scripts.",
+  "The plants, the cards and the sounds are made by the game's own scripts.",
   "Font: the engine's built-in sans.",
   NULL,
 };
@@ -80,6 +89,17 @@ static void start(int players, void *user) {
   const char *sd = cw_test_env("KILOWATTCOUNTRY_SEED");
   M.seed = sd ? (uint64_t)strtoull(sd, NULL, 10) : M.frame_seed;
   M.fast = KILOWATTCOUNTRY_AUTOPILOT || cw_test_env("KILOWATTCOUNTRY_FAST") != NULL;
+  const char *mp = cw_test_env("KILOWATTCOUNTRY_MAP");
+  M.map = KILOWATTCOUNTRY_AUTOPILOT ? M.matches % KC_NMAPS : 0;
+  M.setup = !mp && !KILOWATTCOUNTRY_AUTOPILOT;
+  if (mp) {
+    char *end = NULL;
+    long v = strtol(mp, &end, 10);
+    M.map = end && *end == 0 && end != mp ? (int)v : -1;
+    for (int m = 0; m < KC_NMAPS && M.map < 0; m++)
+      if (strcmp(mp, kc_maps[m].key) == 0) M.map = m;
+    if (M.map < 0 || M.map >= KC_NMAPS) CW_FATAL("kilowattcountry: KILOWATTCOUNTRY_MAP=%s is no map", mp);
+  }
   M.players = k;
   memcpy(M.lv, lv, sizeof lv);
   M.pending_begin = true; /* the match begins on the next tick, as a replay does */
@@ -89,9 +109,7 @@ static void start(int players, void *user) {
 
 /* a match from its start: in a fixed tick, whose rest is skipped (a recording or a replay starts at the next tick) */
 static void begin_match(void) {
-  kg_start(&M.g, M.players, M.lv, M.seed, M.fast);
-  for (int i = 0; i < M.players; i++)
-    if (M.lv[i] < 0) M.g.help = true; /* people start with the how-to-play card open */
+  kg_start(&M.g, M.players, M.lv, M.map, M.seed, M.fast, M.setup);
   M.counted = false;
   view_start(&M.g);
   M.started = true;
@@ -99,7 +117,7 @@ static void begin_match(void) {
 
 static void cmd_replay(int argc, const char **argv, cw_reply *r) {
   (void)argc, (void)argv;
-  if (!M.started || cw_shell_screen_now() != CW_SHELL_PLAY || !cw_input_recording_active()) {
+  if (!M.started || !M.g.match || cw_shell_screen_now() != CW_SHELL_PLAY || !cw_input_recording_active()) {
     cw_reply_error(r, "replay needs a match in play");
     return;
   }
@@ -194,8 +212,13 @@ static void init(void *user) {
   cw_debug_i32("kc.lit", &M.lit);
   cw_debug_i32("kc.label_overlaps", &M.label_overlaps);
   cw_debug_i32("kc.label_link_hits", &M.label_hits);
+  cw_debug_i32("kc.label_strays", &M.label_strays);
   cw_debug_field("kc.label_rect", M.label_rect, CW_DBG_I32, 8 * KC_NCITY);
   cw_debug_i32("kc.cursor", &M.cursor);
+  cw_debug_i32("kc.map", &M.map_now);
+  cw_debug_i32("kc.setup", &M.setup_now);
+  cw_debug_i32("kc.map_picks", &M.map_picks);
+  cw_debug_i32("kc.label_maps", &M.label_maps);
   cw_debug_i32("kc.ntargets", &M.ntargets);
   cw_debug_i32("kc.help", &M.help);
   cw_debug_i32("kc.busy", &M.busy);
@@ -278,11 +301,14 @@ static void fixed_update(void *user, double dt) {
     M.kinds_used += M.g.pad_kinds[k] + M.g.pointer_kinds[k] > 0;
   }
   M.last_kind = M.g.last_kind;
-  M.auc_plant = s->auc_plant >= 0 ? kc_plants[s->auc_plant].number : -1;
+  M.auc_plant = s->auc_plant >= 0 && !M.g.setup ? kc_plants[s->auc_plant].number : -1;
   M.auc_bid = s->auc_bid;
   M.auc_in = s->auc_in;
-  M.hash = (uint32_t)bk_match_hash(M.g.match);
+  M.hash = M.g.match ? (uint32_t)bk_match_hash(M.g.match) : 0;
   M.cursor = kg_cursor(&M.g);
+  M.map_now = M.g.map;
+  M.setup_now = M.g.setup;
+  M.map_picks = M.g.map_picks;
   M.ntargets = M.g.ntargets;
   M.help = M.g.help;
   M.busy = kg_busy(&M.g);
@@ -307,7 +333,9 @@ static void update(void *user, double dt) {
   M.lit = view_lit();
   M.label_overlaps = view_label_overlaps();
   M.label_hits = view_label_link_hits();
+  M.label_strays = view_label_strays();
   view_label_rects(M.label_rect);
+  M.label_maps = view_label_maps();
 }
 
 static void render(void *user, double alpha) {

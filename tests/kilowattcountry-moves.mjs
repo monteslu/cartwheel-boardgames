@@ -2,7 +2,8 @@
 //
 //   node tests/kilowattcountry-moves.mjs [--gpu gl|webgpu|gl,webgpu] [--out out/kilowattcountry-moves]
 //
-// Two hot seats (both people, the free pad drives whoever is to move; seed 5, short beats). At each of their choices
+// Two hot seats (both people, the free pad drives whoever is to move; seed 5, short beats) on the Central Europe map (the
+// setup card skipped: the play test drives it). At each of their choices
 // the driver looks at what the table offers (kc.target_kind) and picks a kind of move that still lacks a pad or a
 // pointer play: open an auction, pass, raise, drop out, scrap a plant, buy fuel, done, build. The pad walks the
 // cursor there with the direction actions and confirms; the pointer taps the target (the cursor goes there), then taps
@@ -71,7 +72,7 @@ async function drive(gpu, { control = false, maxRound = 10 } = {}) {
   const used = { pad: new Array(9).fill(0), pointer: new Array(9).fill(0) };
   const offered = new Array(9).fill(0);
   try {
-    const sw = `env KILOWATTCOUNTRY_SEATS=h,h KILOWATTCOUNTRY_SEED=5 KILOWATTCOUNTRY_FAST=1${control ? ' KILOWATTCOUNTRY_TEST_HIDE=raise' : ''}`;
+    const sw = `env KILOWATTCOUNTRY_SEATS=h,h KILOWATTCOUNTRY_SEED=5 KILOWATTCOUNTRY_FAST=1 KILOWATTCOUNTRY_MAP=central${control ? ' KILOWATTCOUNTRY_TEST_HIDE=raise' : ''}`;
     await h.command(sw);
     await h.step(90);
     let s = await st();
@@ -115,12 +116,13 @@ async function drive(gpu, { control = false, maxRound = 10 } = {}) {
         [K.discard]: after.nplants[seat] === 3,
         [K.fuel]: after.stored[seat] > before.stored[seat] && after.money[seat] < before.money[seat],
         [K.done]: after.turn !== seat || after.phase !== before.phase,
-        [K.build]: after.cities[seat] === before.cities[seat] + 1 && after.money[seat] < before.money[seat],
+        /* (a build that ends the round is followed by the round's income: the money can end higher) */
+        [K.build]: after.cities[seat] === before.cities[seat] + 1 && (after.money[seat] < before.money[seat] || after.round > before.round),
       }[want];
       const fresh = !used[via][want];
       used[via][want] = cnt;
       if (!check(after.decisions === before.decisions + 1 && after.last_kind === want && cnt >= 1 && effect,
-        `${gpu}: ${KIND[want]} by ${via} for seat ${seat} (round ${before.round}): decisions ${before.decisions} to ${after.decisions}, last ${KIND[after.last_kind]}, rules ${effect ? 'changed as expected' : 'NOT changed'}`)) break;
+        `${gpu}: ${KIND[want]} by ${via} for seat ${seat} (round ${before.round}): decisions ${before.decisions} to ${after.decisions}, last ${KIND[after.last_kind]}, rules ${effect ? 'changed as expected' : `NOT changed (cities ${before.cities[seat]} to ${after.cities[seat]}, money ${before.money[seat]} to ${after.money[seat]}, round ${before.round} to ${after.round})`}`)) break;
       if (fresh && shots < 20) { shots++; await shot(`${String(shots).padStart(2, '0')}-${KIND[want]}-${via}`); }
       if (KIND.slice(1).every((_, i) => used.pad[i + 1] && used.pointer[i + 1])) break;
     }

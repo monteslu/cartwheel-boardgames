@@ -21,11 +21,17 @@ const char *kc_kind_name(int kind) {
 
 /* ── shortest routes, per set of regions in play (a pure function of the mask, cached) ── */
 
-static int16_t DIST[1 << KC_NREGION][KC_NCITY][KC_NCITY];
-static bool DIST_READY[1 << KC_NREGION];
+int kc_map_active;
+void kc_use_map(int map) {
+  if (map < 0 || map >= KC_NMAPS) CW_FATAL("kilowattcountry: no map %d", map);
+  kc_map_active = map;
+}
+
+static int16_t DIST[KC_NMAPS][1 << KC_NREGION][KC_NCITY][KC_NCITY];
+static bool DIST_READY[KC_NMAPS][1 << KC_NREGION];
 
 static void dist_build(int mask) {
-  int16_t(*d)[KC_NCITY] = DIST[mask];
+  int16_t(*d)[KC_NCITY] = DIST[kc_map_active][mask];
   for (int a = 0; a < KC_NCITY; a++)
     for (int b = 0; b < KC_NCITY; b++) d[a][b] = a == b ? 0 : 30000;
   for (int i = 0; i < KC_NLINK; i++) {
@@ -37,11 +43,11 @@ static void dist_build(int mask) {
     for (int a = 0; a < KC_NCITY; a++)
       for (int b = 0; b < KC_NCITY; b++)
         if (d[a][k] + d[k][b] < d[a][b]) d[a][b] = (int16_t)(d[a][k] + d[k][b]);
-  DIST_READY[mask] = true;
+  DIST_READY[kc_map_active][mask] = true;
 }
 static const int16_t (*dist_of(int mask))[KC_NCITY] {
-  if (!DIST_READY[mask]) dist_build(mask);
-  return (const int16_t(*)[KC_NCITY])DIST[mask];
+  if (!DIST_READY[kc_map_active][mask]) dist_build(mask);
+  return (const int16_t(*)[KC_NCITY])DIST[kc_map_active][mask];
 }
 
 /* ── plants and fuel ─────────────────────────────────────────────────── */
@@ -244,9 +250,11 @@ static void begin_step3(kc_state *s) {
 
 /* ── setup ───────────────────────────────────────────────────────────── */
 
-void kc_init(kc_state *s, int players, uint64_t seed) {
+void kc_init(kc_state *s, int players, int map, uint64_t seed) {
   if (players < 2 || players > KC_MAX_P) CW_FATAL("kc_init: %d players (2..4)", players);
+  kc_use_map(map);
   memset(s, 0, sizeof *s);
+  s->map = (int16_t)map;
   cw_rng r;
   cw_rng_seed(&r, seed);
   s->players = (int16_t)players;
@@ -257,9 +265,9 @@ void kc_init(kc_state *s, int players, uint64_t seed) {
   s->last_draw = -1;
   /* the regions: a joined set of the right size */
   int k = kc_regions_used[players];
-  const uint8_t *sets = k == 3 ? kc_region_sets_3 : k == 4 ? kc_region_sets_4 : kc_region_sets_5;
-  int nsets = k == 3 ? (int)sizeof kc_region_sets_3 : k == 4 ? (int)sizeof kc_region_sets_4 : (int)sizeof kc_region_sets_5;
-  s->regions = sets[cw_rng_int(&r, 0, nsets - 1)];
+  int nsets = kc_map->nsets[k - 3];
+  if (nsets < 1) CW_FATAL("kilowattcountry: %s has no joined set of %d regions", kc_map->title, k);
+  s->regions = kc_map->sets[k - 3][cw_rng_int(&r, 0, nsets - 1)];
   for (int c = 0; c < KC_NCITY; c++)
     for (int j = 0; j < 3; j++) s->occ[c][j] = -1;
   /* plants: the eight lowest in the market, the rest in the deck, a few set aside */
@@ -462,6 +470,7 @@ bool kc_terminal(const void *state, void *user) {
 int kc_moves(const void *state, bk_move *out, int cap, void *user) {
   (void)user;
   const kc_state *s = state;
+  if (s->map != kc_map_active) CW_FATAL("kilowattcountry: a state on map %d while map %d is in use", s->map, kc_map_active);
   int n = 0, seat = s->cur;
 #define ADD(m) do { if (n < cap) out[n++] = (m); } while (0)
   if (s->phase == KC_PH_OVER || needs_draw(s) || seat < 0) return 0;
@@ -507,6 +516,7 @@ int kc_moves(const void *state, bk_move *out, int cap, void *user) {
 void kc_apply(void *state, bk_move m, void *user) {
   (void)user;
   kc_state *s = state;
+  if (s->map != kc_map_active) CW_FATAL("kilowattcountry: a state on map %d while map %d is in use", s->map, kc_map_active);
   int kind = bk_move_field(m, 0), a = bk_move_field(m, 1), b = bk_move_field(m, 2);
   if (kind == KC_M_DRAW) {
     if (!needs_draw(s)) CW_FATAL("kc: a draw with none due");

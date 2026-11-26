@@ -5,7 +5,7 @@
 #   kilowattcountry_cpu_bench    CPU level against CPU level over seeded games (native only)
 set(KC_RULES src/rules.c)
 set(KC_SRC src/main.c src/game.c src/view.c ${KC_RULES})
-set(KC_META TITLE "Kilowatt Country" DESCRIPTION "Bid on power plants, buy fuel as prices climb and wire up cities across a night map, against friends or the computer." AUTHOR "Luis Montes")
+set(KC_META TITLE "Kilowatt Country" DESCRIPTION "Bid on power plants, buy fuel as prices climb and wire up real cities on night maps of the United States, Europe and more, against friends or the computer." AUTHOR "Luis Montes")
 set(KC_ASSETS ASSETS ${CMAKE_CURRENT_SOURCE_DIR}/assets ART ${CMAKE_CURRENT_SOURCE_DIR}/art)
 set(KC_PROGRAMS PROGRAMS ${CMAKE_CURRENT_SOURCE_DIR}/programs/kilowattcountry.txt)
 bk_add_app(kilowattcountry SOURCES ${KC_SRC} ${KC_ASSETS} ${KC_PROGRAMS} ${KC_META})

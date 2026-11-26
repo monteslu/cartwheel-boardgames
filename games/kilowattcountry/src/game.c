@@ -27,7 +27,12 @@ void kg_actions_init(kg_game *g) {
   }
 }
 
-bool kg_busy(const kg_game *g) { return g->wait > 0 || bk_match_log_next(g->match) > g->log_seen; }
+bool kg_busy(const kg_game *g) { return g->match && (g->wait > 0 || bk_match_log_next(g->match) > g->log_seen); }
+int kg_setup_seat(const kg_game *g) {
+  for (int i = 0; i < g->players; i++)
+    if (g->cpu_level[i] < 0) return i;
+  return 0;
+}
 bool kg_seat_cpu(const kg_game *g, int seat) { return seat >= 0 && seat < g->players && g->cpu_level[seat] >= 0; }
 
 /* ── targets ─────────────────────────────────────────────────────────── */
@@ -47,6 +52,7 @@ static t3_vec3 chip_at(int f, int k) { return (t3_vec3){ LY_FUEL_X0 + 0.25f + (f
  * from the decision count so it is the same on every host) */
 static bk_move hint(kg_game *g) {
   const kc_state *s = &g->shown;
+  if (g->setup) return BK_MOVE_NONE;
   if (kg_seat_cpu(g, g->turn) || kc_terminal(s, NULL) || kc_turn(s, NULL) == BK_CHANCE) return BK_MOVE_NONE;
   bk_move mv[BK_MAX_MOVES];
   int n = kc_moves(s, mv, BK_MAX_MOVES, NULL);
@@ -56,7 +62,27 @@ static bk_move hint(kg_game *g) {
   return kc_playout(s, mv, n, &r, NULL);
 }
 
+/* the setup card: a plate per map down the left of the table (where the plant market lies in play), Begin under them */
+static t3_vec3 map_plate_at(int i) { return (t3_vec3){ -10.0f, 0.6f, -5.95f + (float)i * 1.02f }; }
+static void build_setup_targets(kg_game *g) {
+  g->ntargets = 0;
+  int keep = 0;
+  for (int m = 0; m < KC_NMAPS && !g->hide_maps; m++) {
+    if (m == g->map) keep = g->ntargets;
+    add_target(g, (kg_target){ KG_T_MAP, m, BK_MOVE_NONE, map_plate_at(m) });
+  }
+  if (!g->map_picks) keep = g->ntargets; /* the cursor starts on Begin: one confirm plays the default map */
+  add_target(g, (kg_target){ KG_T_BEGIN, 0, BK_MOVE_NONE, map_plate_at(KC_NMAPS) });
+  t3_vec3 pts[KG_MAX_TARGETS];
+  for (int i = 0; i < g->ntargets; i++) pts[i] = g->target[i].at;
+  cw_cursors_set_points(bk_select_cursors(g->sel), pts, g->ntargets);
+  bk_select_enable_all(g->sel, true);
+  bk_select_place(g->sel, g->turn, keep);
+  g->dirty = false;
+}
+
 static void build_targets(kg_game *g) {
+  if (g->setup) { build_setup_targets(g); return; }
   const kc_state *s = &g->shown;
   int seat = g->turn, keep = 0;
   bk_move h = g->hint = hint(g);
@@ -122,7 +148,7 @@ static void build_targets(kg_game *g) {
 int kg_cursor(const kg_game *g) { return bk_select_target(g->sel, g->turn); }
 
 bk_move kg_preview(const kg_game *g) {
-  if (g->over || kg_busy(g) || g->dirty) return BK_MOVE_NONE;
+  if (g->setup || g->over || kg_busy(g) || g->dirty) return BK_MOVE_NONE;
   int t = kg_cursor(g);
   if (t < 0 || t >= g->ntargets) return BK_MOVE_NONE;
   const kg_target *tt = &g->target[t];
@@ -191,25 +217,18 @@ void kg_free(kg_game *g) {
   g->sel = NULL;
 }
 
-void kg_start(kg_game *g, int players, const int *cpu_level, uint64_t seed, bool fast) {
-  kg_free(g);
-  cw_action act[A_COUNT];
-  memcpy(act, g->act, sizeof act);
-  memset(g, 0, sizeof *g);
-  memcpy(g->act, act, sizeof act);
-  if (players < 2 || players > KC_MAX_P) CW_FATAL("kilowattcountry: a match of %d seats (2..4)", players);
-  g->players = players;
-  g->seed = seed;
-  g->fast = fast;
+/* the match itself, on g->map: the rules, the match and the CPU seats */
+static void begin_play(kg_game *g) {
+  int players = g->players;
+  uint64_t seed = g->seed;
+  bool fast = g->fast;
+  g->setup = false;
   kc_game(&g->search, players);
   g->rules = g->search;
   g->rules.chance = NULL; /* the match resolves chance from outcomes(): the log then names each draw */
   kc_state init;
-  kc_init(&init, players, seed);
+  kc_init(&init, players, g->map, seed);
   g->match = bk_match_new(&g->rules, &init, bk_seed_mix(seed, 0x6b77));
-  g->sel = bk_select_new(&(bk_select_desc){ .cursor = { .points_xz = true }, .left = act[A_LEFT], .right = act[A_RIGHT],
-                                            .up = act[A_UP], .down = act[A_DOWN], .confirm = act[A_OK], .back = act[A_BACK] });
-  for (int i = 0; i < KC_MAX_P; i++) g->cpu_level[i] = i < players ? cpu_level[i] : -1;
   for (int i = 0; i < players; i++)
     if (g->cpu_level[i] >= 0) {
       cw_search_options o;
@@ -224,11 +243,40 @@ void kg_start(kg_game *g, int players, const int *cpu_level, uint64_t seed, bool
   g->mode = UI_MAIN;
   g->dirty = true;
   g->wait = beat_ticks(g, 40);
+  for (int i = 0; i < players; i++)
+    if (g->cpu_level[i] < 0) g->help = true; /* people start with the how-to-play card open */
+}
+
+void kg_start(kg_game *g, int players, const int *cpu_level, int map, uint64_t seed, bool fast, bool setup) {
+  kg_free(g);
+  cw_action act[A_COUNT];
+  memcpy(act, g->act, sizeof act);
+  memset(g, 0, sizeof *g);
+  memcpy(g->act, act, sizeof act);
+  if (players < 2 || players > KC_MAX_P) CW_FATAL("kilowattcountry: a match of %d seats (2..4)", players);
+  g->players = players;
+  g->seed = seed;
+  g->fast = fast;
+  g->sel = bk_select_new(&(bk_select_desc){ .cursor = { .points_xz = true }, .left = act[A_LEFT], .right = act[A_RIGHT],
+                                            .up = act[A_UP], .down = act[A_DOWN], .confirm = act[A_OK], .back = act[A_BACK] });
+  bool person = false;
+  for (int i = 0; i < KC_MAX_P; i++) g->cpu_level[i] = i < players ? cpu_level[i] : -1, person |= i < players && cpu_level[i] < 0;
   static const char *const KIND[KC_M_DRAW] = { "", "open", "pass", "raise", "drop", "discard", "fuel", "done", "build" };
   const char *hide = cw_test_env("KILOWATTCOUNTRY_TEST_HIDE");
   for (int k = 1; hide && k < KC_M_DRAW; k++)
     if (strcmp(hide, KIND[k]) == 0) g->hide_kind = k;
-  if (hide && !g->hide_kind) CW_FATAL("kilowattcountry: KILOWATTCOUNTRY_TEST_HIDE=%s is no move kind", hide);
+  g->hide_maps = hide && strcmp(hide, "map") == 0;
+  if (hide && !g->hide_kind && !g->hide_maps) CW_FATAL("kilowattcountry: KILOWATTCOUNTRY_TEST_HIDE=%s is no move kind", hide);
+  g->map = map;
+  if (setup && person) { /* the setup card: the table shows the map as it would be dealt */
+    g->setup = true;
+    g->mode = UI_SETUP;
+    g->turn = kg_setup_seat(g);
+    kc_init(&g->shown, players, map, seed);
+    g->dirty = true;
+    return;
+  }
+  begin_play(g);
 }
 
 /* how long the table holds a beat */
@@ -276,8 +324,37 @@ static void play(kg_game *g, bk_move m) {
   g->dirty = true;
 }
 
+/* the setup card's tick: the first person picks a map (the table redeals it to show) and Begin starts the match */
+static void setup_tick(kg_game *g) {
+  int seat = g->turn;
+  cw_shell_set_turn(seat);
+  bk_select_feed(g->sel, seat);
+  bool closed = false;
+  for (int i = 0; i < g->players; i++) {
+    if (kg_seat_cpu(g, i)) continue;
+    if (cw_action_just_pressed(i, g->act[A_HELP])) g->help = !g->help, closed = !g->help;
+    else if (g->help && (cw_action_just_pressed(i, g->act[A_OK]) || cw_action_just_pressed(i, g->act[A_BACK]))) g->help = false, closed = true;
+  }
+  if (g->dirty) build_targets(g);
+  if (g->help || closed) return;
+  bk_sel_event ev = bk_select_tick(g->sel, seat);
+  if (ev.kind != BK_SEL_CONFIRM || ev.target < 0 || ev.target >= g->ntargets) return;
+  if (ev.pointer) g->pointer_picks++;
+  const kg_target *t = &g->target[ev.target];
+  if (t->kind == KG_T_MAP) {
+    g->map = t->value;
+    g->map_picks++;
+    kc_init(&g->shown, g->players, g->map, g->seed);
+    build_targets(g);
+    bk_select_place(g->sel, seat, ev.target); /* the cursor stays on the plate just picked */
+    return;
+  }
+  begin_play(g);
+}
+
 void kg_tick(kg_game *g) {
   g->ticks++;
+  if (g->setup) { setup_tick(g); return; }
   for (int i = 0; i < g->players; i++)
     if (g->cpu[i]) {
       cw_action_value v[4];

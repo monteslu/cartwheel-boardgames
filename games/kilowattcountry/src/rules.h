@@ -32,6 +32,8 @@
  *   one can take its place.
  *   Fewer players play on fewer regions of the map (3 regions for 2, 4 for 3, all 5 for 4), always joined, and
  *   a few plants are set aside face up at the start (4 with 2, 3 with 3, 2 with 4).
+ *   The map is a real country or area (kc_maps): thirty real cities in five regions of six, each link costing by the
+ *   real distance between its cities.
  */
 #ifndef KILOWATTCOUNTRY_RULES_H
 #define KILOWATTCOUNTRY_RULES_H
@@ -47,6 +49,15 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/* The map in use: one per match, set by kc_init (kc_use_map for a state made elsewhere). The rules and the view read
+ * the map's cities and links through these names. */
+extern int kc_map_active;
+void kc_use_map(int map);
+#define kc_map (&kc_maps[kc_map_active])
+#define kc_cities (kc_maps[kc_map_active].cities)
+#define kc_links (kc_maps[kc_map_active].links)
+#define KC_NLINK (kc_maps[kc_map_active].nlink)
 
 #define KC_MAX_P 4
 #define KC_MARKET 8
@@ -67,7 +78,7 @@ typedef struct kc_player { /* int16 only: no padding */
 } kc_player;
 
 typedef struct kc_state {
-  int16_t players, phase, step, round, cur, oi, regions, ending;
+  int16_t players, phase, step, round, cur, oi, regions, ending, map;
   int16_t order[KC_MAX_P];
   int16_t auc_plant, auc_bid, auc_high, auc_in, auc_opener, bought, passed, disc_new;
   int16_t nmarket, step3_drawn, moves_played, last_draw;
@@ -78,8 +89,9 @@ typedef struct kc_state {
   kc_player p[KC_MAX_P];
 } kc_state;
 
-/* a fresh game: regions, set-aside plants and the first order drawn from seed (all open on the table) */
-void kc_init(kc_state *s, int players, uint64_t seed);
+/* a fresh game on a map (kc_maps index; it becomes the map in use): regions, set-aside plants and the first order
+ * drawn from seed (all open on the table) */
+void kc_init(kc_state *s, int players, int map, uint64_t seed);
 
 /* bk_game callbacks */
 int kc_moves(const void *state, bk_move *out, int cap, void *user);

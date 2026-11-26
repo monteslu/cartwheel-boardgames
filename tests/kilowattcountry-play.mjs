@@ -7,6 +7,8 @@
 // One run per GPU (seats: a person on pad 1 as Amber and a Normal computer as Cobalt, seed 3):
 //   - the title, on a load of its own: "How to play" and "Credits" open their pages (the shell's screen 6) and back
 //     returns to the title; then the play run's test switch starts the match from the shell's menu tick;
+//   - the setup card: it opens on the first map with the cursor on Begin; the pad picks another map (up, confirm),
+//     the pointer picks France (a tap, a second tap), and the pad walks down to Begin and starts the match there;
 //   - the how-to-play card is open at the start; confirm closes it;
 //   - the pad: on the person's first turn (an auction to open) hop left (the cursor moves), then confirm what the
 //     cursor offers; every later choice up to the build is confirmed where the cursor starts (the suggestion);
@@ -17,9 +19,12 @@
 //     pointer through the engine's pointer channel) must reach the same state and input hash.
 // Both GPUs must end in the same state hash at the same frame. CONTROLS that must fail: the same replay with
 // CW_TEST_SET_UNRECORDED=1 (set actions, the computer's presses, left out of the recording), with
-// CW_TEST_POINTER_UNRECORDED=1 (the pointer left out), and with no seats switch the title stays put. The city names:
-// none runs into another or sits on its own city on any map (kc.label_overlaps 0); CONTROL: KILOWATTCOUNTRY_LABELS=below
-// (every name straight under its city, as before) runs names together.
+// CW_TEST_POINTER_UNRECORDED=1 (the pointer left out), and with no seats switch the title stays put; with
+// KILOWATTCOUNTRY_TEST_HIDE=map the setup card offers no map plates and the pad cannot change the map. The city names:
+// none runs into another or sits on its own city on any map and any set of regions a match can deal there
+// (kc.label_overlaps 0 once kc.label_maps covers every map), and no name hides another city or needs a leader that runs
+// over another city or name (kc.label_strays 0); CONTROL: KILOWATTCOUNTRY_LABELS=below (every name straight under its
+// city, as before) runs names together and leaves misleading names.
 import { mkdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -78,7 +83,7 @@ async function play(gpu, { control = '' } = {}) {
     return s;
   };
   try {
-    const sw = { set: ' CW_TEST_SET_UNRECORDED=1', pointer: ' CW_TEST_POINTER_UNRECORDED=1', nostart: '', labels: ' KILOWATTCOUNTRY_LABELS=below' }[control] ?? '';
+    const sw = { set: ' CW_TEST_SET_UNRECORDED=1', pointer: ' CW_TEST_POINTER_UNRECORDED=1', nostart: '', labels: ' KILOWATTCOUNTRY_LABELS=below', map: ' KILOWATTCOUNTRY_TEST_HIDE=map' }[control] ?? '';
     await h.command(control === 'nostart' ? 'env KILOWATTCOUNTRY_SEED=3' : `env KILOWATTCOUNTRY_SEATS=p,c1 KILOWATTCOUNTRY_SEED=3${sw}`);
     await h.step(90);
     if (control === 'nostart') {
@@ -87,14 +92,50 @@ async function play(gpu, { control = '' } = {}) {
       return null;
     }
     let s = await st();
+    for (let n = 0; n < 10 && s.label_maps < 7; n++) { await h.step(10); s = await st(); }
     if (control === 'labels') {
-      check(s.label_overlaps > 0, `CONTROL ${gpu}: every name straight under its city runs names together on some map (${s.label_overlaps}): caught`);
+      check(s.label_maps === 7 && s.label_overlaps > 0, `CONTROL ${gpu}: every name straight under its city runs names together on some map (${s.label_overlaps} over ${s.label_maps} maps): caught`);
+      check(s.label_strays > 0, `CONTROL ${gpu}: every name straight under its city leaves names that hide a city or point the wrong way (${s.label_strays}): caught`);
       return null;
     }
-    check(s.label_overlaps === 0, `${gpu}: no city name runs into another or sits on its own city, on every map a match can deal (${s.label_overlaps}; over another city, a tag or a link: ${s.label_link_hits})`);
+    check(s.label_maps === 7 && s.label_overlaps === 0, `${gpu}: no city name runs into another or sits on its own city, on all ${s.label_maps} maps and every set of regions a match deals there (${s.label_overlaps}; over another city, a tag or a link: ${s.label_link_hits})`);
+    check(s.label_strays === 0, `${gpu}: no city name hides another city and no leader runs over another city or name, on every map (${s.label_strays})`);
+    /* the setup card */
+    if (control !== 'map') check(s.setup === 1 && s.map === 0 && s.ntargets === 8 && s.cursor === 7, `${gpu}: the setup card opens on the first map, the cursor on Begin (setup ${s.setup}, map ${s.map}, targets ${s.ntargets}, cursor ${s.cursor})`);
+    await shot('1-setup');
+    let at = await h.now();
+    await h.timeline([tap(at + 5, 'up'), tap(at + 20, 'south')], at + 40);
+    s = await st();
+    if (control === 'map') {
+      /* (only Begin is left: the presses start the match, still on the first map) */
+      check(s.map === 0 && s.map_picks === 0, `CONTROL ${gpu}: with no map plates the pad cannot change the map (map ${s.map}, picks ${s.map_picks}, targets ${s.ntargets}): caught`);
+      return null;
+    }
+    check(s.setup === 1 && s.map === 6 && s.map_picks === 1, `${gpu}: the pad picks the map above Begin (map ${s.map}, picks ${s.map_picks})`);
+    await shot('1-setup-pad');
+    const k = (h.loaded.fbWidth || 1280) / 1280; /* canvas px (1280 wide) to the cart's pixels */
+    const pt = async (i, frames = 12) => {
+      const px = (await st()).target_px;
+      const x = Math.round(px[2 * i] * k), y = Math.round(px[2 * i + 1] * k);
+      await call('input', { op: 'pointer', x, y, left: true }, h.session);
+      await h.step(2);
+      await call('input', { op: 'pointer', x, y, left: false }, h.session);
+      await h.step(frames);
+    };
+    await pt(3);
+    s = await st();
+    check(s.cursor === 3 && s.map === 6, `${gpu}: a tap on a map moves the cursor there (cursor ${s.cursor}, map ${s.map})`);
+    await pt(3, 20);
+    s = await st();
+    check(s.map === 3 && s.map_picks === 2 && s.pointer_picks === 1, `${gpu}: a second tap picks it (map ${s.map}, pointer picks ${s.pointer_picks})`);
+    await shot('1-setup-pointer');
+    at = await h.now();
+    await h.timeline([tap(at + 5, 'down'), tap(at + 15, 'down'), tap(at + 25, 'down'), tap(at + 35, 'down'), tap(at + 50, 'south')], at + 90);
+    s = await st();
+    check(s.setup === 0 && s.map === 3, `${gpu}: the pad walks down to Begin and the match begins on the map picked (setup ${s.setup}, map ${s.map})`);
     check(s.help === 1 && s.round === 1 && s.phase === PH.auction, `${gpu}: the match opens on the how-to-play card in round 1 (help ${s.help}, phase ${s.phase})`);
     await shot('1-card');
-    let at = await h.now();
+    at = await h.now();
     await h.timeline([tap(at + 5, 'south')], at + 30);
     s = await untilMine();
     check(s.help === 0 && s.turn === 0 && s.phase === PH.auction, `${gpu}: card closed, Amber's turn in the auction (help ${s.help}, turn ${s.turn})`);
@@ -118,23 +159,14 @@ async function play(gpu, { control = '' } = {}) {
     }
     check(s.phase === PH.build && s.turn === 0 && s.cpu_moves >= 1, `${gpu}: through the auction and the fuel to Amber's build (computer moves ${s.cpu_moves}, phase ${s.phase})`);
     /* the pointer: tap the first city target twice */
-    const k = (h.loaded.fbWidth || 1280) / 1280; /* canvas px (1280 wide) to the cart's pixels */
-    const pt = async (i, frames = 12) => {
-      const px = (await st()).target_px;
-      const x = Math.round(px[2 * i] * k), y = Math.round(px[2 * i + 1] * k);
-      await call('input', { op: 'pointer', x, y, left: true }, h.session);
-      await h.step(2);
-      await call('input', { op: 'pointer', x, y, left: false }, h.session);
-      await h.step(frames);
-    };
-    const d1 = s.decisions, cities0 = s.cities[0];
+    const d1 = s.decisions, cities0 = s.cities[0], picks0 = s.pointer_picks;
     await pt(0, 20);
     s = await st();
     check(s.cursor === 0 && s.decisions === d1, `${gpu}: a tap on a city moves the cursor there, the ghost house shows (target ${s.cursor})`);
     await shot('4-ghost-house');
     await pt(0, 60);
     s = await st();
-    check(s.pointer_picks === 1 && s.cities[0] === cities0 + 1, `${gpu}: a second tap builds there (pointer picks ${s.pointer_picks}, cities ${s.cities[0]})`);
+    check(s.pointer_picks === picks0 + 1 && s.cities[0] === cities0 + 1, `${gpu}: a second tap builds there (pointer picks ${s.pointer_picks}, cities ${s.cities[0]})`);
     await shot('5-built');
     /* done building; the round's power lights the houses */
     for (let i = 0; i < 20 && s.round === 1; i++) {
@@ -163,6 +195,6 @@ const gpus = gpusArg(process.argv);
 const runs = {};
 for (const gpu of gpus) { await titlePages(gpu); runs[gpu] = await play(gpu); }
 if (runs.gl && runs.webgpu) check(runs.gl.hash === runs.webgpu.hash && runs.gl.frame === runs.webgpu.frame, `GL and WebGPU end in the same state (${runs.gl.hash} at frame ${runs.gl.frame}, ${runs.webgpu.hash} at ${runs.webgpu.frame})`);
-for (const control of ['set', 'pointer', 'nostart', 'labels']) await play(gpus[0], { control });
+for (const control of ['set', 'pointer', 'nostart', 'labels', 'map']) await play(gpus[0], { control });
 console.log(failed ? `${failed} failed` : 'kilowattcountry play: all passed');
 process.exit(failed ? 1 : 0);

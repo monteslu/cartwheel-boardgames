@@ -49,10 +49,13 @@ static struct {
   int players;
   /* the map */
   cw_node overlay[KC_NREGION];
-  cw_node link[KC_NLINK];
+  int map_shown, nlink_built; /* the map the board shows (kc_maps index), the links built for it */
+  t3_texture *map_tex[KC_NMAPS], *region_tex[KC_NMAPS][KC_NREGION];
+  t3_material *paint_mat, *overlay_mat[KC_NREGION];
+  cw_node link[KC_MAX_LINK];
   t3_material *link_mat, *link_hot;
-  bool link_lit[KC_NLINK];
-  cw_node city[KC_NCITY], glow[KC_NCITY];
+  bool link_lit[KC_MAX_LINK];
+  cw_node city[KC_NCITY], plinth[KC_NCITY], glow[KC_NCITY];
   t3_material *glow_mat[KC_NCITY];
   cw_node room[KC_NCITY][3];
   cw_node house[KC_NCITY][3];
@@ -314,6 +317,7 @@ static cw_node make_house(cw_node parent, const char *name, t3_material *body, t
     roof_m = matte(0x2a2422, 0.8f);
   }
   cw_node g = group(parent, name);
+  cw_node3d_set_scale(g, v3(LY_CITY_S, LY_CITY_S, LY_CITY_S));
   cw_node w = mesh_node(g, "Walls", walls, body, true, true);
   cw_node3d_set_position(w, v3(0, 0.09f, 0));
   cw_node r = mesh_node(g, "Roof", roof, window ? body : roof_m, true, true); /* the roof in the company's colour: the camera sees it most */
@@ -330,6 +334,56 @@ static t3_geometry *link_geo(int i) {
   t3_vec3 a = ly_city(kc_links[i].a), b = ly_city(kc_links[i].b);
   float len = hypotf(b.x - a.x, b.z - a.z) - 0.5f;
   return t3_box_geometry_new(len > 0.05f ? len : 0.05f, 0.012f, 0.05f, 1, 1, 1);
+}
+
+/* the cables between the map's cities: one per link of the map in use (rebuilt when the map changes) */
+static void build_links(void) {
+  for (int i = 0; i < V.nlink_built; i++) cw_node_free(V.link[i]);
+  for (int i = 0; i < KC_NLINK; i++) {
+    t3_vec3 a = ly_city(kc_links[i].a), b = ly_city(kc_links[i].b);
+    t3_geometry *g = link_geo(i);
+    V.link[i] = group(V.root, "Link");
+    cw_node3d_set_position(V.link[i], v3((a.x + b.x) * 0.5f, LY_BOARD_Y + 0.006f, (a.z + b.z) * 0.5f));
+    cw_node3d_set_rotation(V.link[i], v3(0, -atan2f(b.z - a.z, b.x - a.x), 0));
+    mesh_node(V.link[i], "Cable", g, V.link_mat, false, true);
+    cw_node n1 = mesh_node(V.link[i], "CableLit", g, V.link_hot, false, false);
+    show(n1, false);
+    V.link_lit[i] = false;
+    t3_release(g);
+  }
+  V.nlink_built = KC_NLINK;
+}
+
+/* the board shows the map in use: its night picture and region masks, its cables, the cities on their spots */
+static void apply_map(void) {
+  if (V.map_shown == kc_map_active) return;
+  V.map_shown = kc_map_active;
+  t3_material_set_map(V.paint_mat, V.map_tex[V.map_shown]);
+  V.paint_mat->version++;
+  for (int r = 0; r < KC_NREGION; r++) {
+    t3_material_set_map(V.overlay_mat[r], V.region_tex[V.map_shown][r]);
+    V.overlay_mat[r]->version++;
+  }
+  build_links();
+  for (int c = 0; c < KC_NCITY; c++) {
+    t3_vec3 p = ly_city(c);
+    cw_node3d_set_position(V.plinth[c], v3(p.x, p.y + 0.025f, p.z));
+    for (int k = 0; k < 3; k++) {
+      t3_vec3 r = ly_room(c, k);
+      cw_node3d_set_position(V.room[c][k], v3(r.x, p.y + 0.055f, r.z));
+    }
+    cw_node3d_set_position(V.glow[c], v3(p.x, p.y + 0.03f, p.z));
+  }
+}
+
+/* what is in play on the board: the regions dealt (the rest under their dark masks), their cities and links */
+static void show_regions(const kc_state *s) {
+  for (int r = 0; r < KC_NREGION; r++) show(V.overlay[r], !kc_region_in(s, r));
+  for (int i = 0; i < KC_NLINK; i++) {
+    bool in = kc_region_in(s, kc_cities[kc_links[i].a].region) && kc_region_in(s, kc_cities[kc_links[i].b].region);
+    show(V.link[i], in);
+  }
+  for (int c = 0; c < KC_NCITY; c++) show(V.city[c], kc_region_in(s, kc_cities[c].region));
 }
 
 cw_node view_camera(void) { return V.camera; }
@@ -365,27 +419,34 @@ void view_init(cw_tree *t) {
   cw_node3d_set_position(slab, v3(cx, (LY_BOARD_Y - 0.01f) * 0.5f, cz));
   t3_release(bg);
   t3_release(rim);
-  t3_material *paint_m = matte(0xffffff, 0.9f);
-  t3_material_set_map(paint_m, texture("textures/map.png"));
+  /* every map's night picture and region masks load now: picking a map swaps textures, never waits on a load */
+  for (int m = 0; m < KC_NMAPS; m++) {
+    char path[64];
+    snprintf(path, sizeof path, "textures/map-%s.png", kc_maps[m].key);
+    V.map_tex[m] = texture(path);
+    for (int r = 0; r < KC_NREGION; r++) {
+      snprintf(path, sizeof path, "textures/region-%s-%d.png", kc_maps[m].key, r);
+      V.region_tex[m][r] = texture(path);
+    }
+  }
+  V.map_shown = kc_map_active;
+  t3_material *paint_m = V.paint_mat = matte(0xffffff, 0.9f);
+  t3_material_set_map(paint_m, V.map_tex[V.map_shown]);
   t3_geometry *pg = t3_plane_geometry_new(LY_MAP_W, LY_MAP_D, 1, 1);
   flip_v(pg);
   cw_node face = mesh_node(V.root, "MapFace", pg, paint_m, false, true);
   cw_node3d_set_rotation(face, v3(-1.5708f, 0, 0));
   cw_node3d_set_position(face, v3(cx, LY_BOARD_Y, cz));
-  t3_release(paint_m);
   /* a region out of play: its mask laid dark over it */
   for (int r = 0; r < KC_NREGION; r++) {
-    char path[40];
-    snprintf(path, sizeof path, "textures/region-%d.png", r);
-    t3_material *m = t3_mesh_basic_material_new(0xffffff);
-    t3_material_set_map(m, texture(path));
+    t3_material *m = V.overlay_mat[r] = t3_mesh_basic_material_new(0xffffff);
+    t3_material_set_map(m, V.region_tex[V.map_shown][r]);
     m->transparent = true;
     m->depth_write = false;
     V.overlay[r] = mesh_node(V.root, "OutOfPlay", pg, m, false, false);
     cw_node3d_set_rotation(V.overlay[r], v3(-1.5708f, 0, 0));
     cw_node3d_set_position(V.overlay[r], v3(cx, LY_BOARD_Y + 0.004f, cz));
     show(V.overlay[r], false);
-    t3_release(m);
   }
   t3_release(pg);
   /* links: thin cables between cities */
@@ -395,22 +456,11 @@ void view_init(cw_tree *t) {
   V.link_hot = t3_mesh_standard_material_new(0x806020);
   V.link_hot->emissive = (t3_color){ 1.0f, 0.62f, 0.22f };
   V.link_hot->emissive_intensity = 1.6f;
-  for (int i = 0; i < KC_NLINK; i++) {
-    t3_vec3 a = ly_city(kc_links[i].a), b = ly_city(kc_links[i].b);
-    t3_geometry *g = link_geo(i);
-    V.link[i] = group(V.root, "Link");
-    cw_node3d_set_position(V.link[i], v3((a.x + b.x) * 0.5f, LY_BOARD_Y + 0.006f, (a.z + b.z) * 0.5f));
-    cw_node3d_set_rotation(V.link[i], v3(0, -atan2f(b.z - a.z, b.x - a.x), 0));
-    cw_node n0 = mesh_node(V.link[i], "Cable", g, V.link_mat, false, true);
-    cw_node n1 = mesh_node(V.link[i], "CableLit", g, V.link_hot, false, false);
-    show(n1, false);
-    (void)n0;
-    t3_release(g);
-  }
+  build_links();
   /* cities: a dark plinth with three rooms, a glow beneath for the lights */
-  t3_geometry *plinth = t3_cylinder_geometry_new(0.36f, 0.4f, 0.05f, 28, 1, false);
-  t3_geometry *roomg = t3_cylinder_geometry_new(0.1f, 0.1f, 0.012f, 16, 1, false);
-  t3_geometry *glowg = t3_plane_geometry_new(1.6f, 1.6f, 1, 1);
+  t3_geometry *plinth = t3_cylinder_geometry_new(0.36f * LY_CITY_S, 0.4f * LY_CITY_S, 0.05f, 28, 1, false);
+  t3_geometry *roomg = t3_cylinder_geometry_new(0.1f * LY_CITY_S, 0.1f * LY_CITY_S, 0.012f, 16, 1, false);
+  t3_geometry *glowg = t3_plane_geometry_new(1.6f * LY_CITY_S, 1.6f * LY_CITY_S, 1, 1);
   t3_material *plinth_m = matte(0x3a4250, 0.6f), *room_m = t3_mesh_standard_material_new(0x404850);
   room_m->emissive = (t3_color){ 0.3f, 0.36f, 0.44f };
   room_m->emissive_intensity = 0.35f;
@@ -418,7 +468,7 @@ void view_init(cw_tree *t) {
   for (int c = 0; c < KC_NCITY; c++) {
     t3_vec3 p = ly_city(c);
     V.city[c] = group(V.root, "City");
-    cw_node pl = mesh_node(V.city[c], "Plinth", plinth, plinth_m, true, true);
+    cw_node pl = V.plinth[c] = mesh_node(V.city[c], "Plinth", plinth, plinth_m, true, true);
     cw_node3d_set_position(pl, v3(p.x, p.y + 0.025f, p.z));
     for (int k = 0; k < 3; k++) {
       t3_vec3 r = ly_room(c, k);
@@ -568,13 +618,9 @@ void view_start(const kg_game *g) {
   t3_release(felt);
   t3_release(tray_g);
   t3_release(band_g);
-  for (int r = 0; r < KC_NREGION; r++) show(V.overlay[r], !kc_region_in(s, r));
-  for (int i = 0; i < KC_NLINK; i++) {
-    bool in = kc_region_in(s, kc_cities[kc_links[i].a].region) && kc_region_in(s, kc_cities[kc_links[i].b].region);
-    show(V.link[i], in);
-  }
+  apply_map();
+  show_regions(s);
   for (int c = 0; c < KC_NCITY; c++) {
-    show(V.city[c], kc_region_in(s, kc_cities[c].region));
     for (int k = 0; k < 3; k++) {
       V.house_owner[c][k] = -1;
       V.lit[c][k] = V.lit_to[c][k] = 0;
@@ -762,10 +808,20 @@ static void route_links(const kc_state *s, int seat, int city, bool *on) {
 }
 
 void view_update(const kg_game *g, float dt) {
-  if (!g->match) return;
   V.time += dt;
   V.moving = 0;
   const kc_state *s = &g->shown;
+  if (g->setup) { /* the setup card: the board shows the map picked, dealt as it would be; nothing else moves */
+    apply_map();
+    show_regions(s);
+    show(V.marker, false);
+    show(V.ghost, false);
+    show(V.deck_top, false); /* (the deck is placed by play; it waits off the table) */
+    show(V.deck_slab, false);
+    return;
+  }
+  apply_map();
+  if (!g->match) return;
   int n = g->players;
   if (g->beat.serial != V.beat_seen) {
     V.beat_seen = g->beat.serial;
@@ -884,7 +940,7 @@ void view_update(const kg_game *g, float dt) {
         V.moving++;
       }
       cw_node3d_set_position(V.house[c][k], v3(at.x, at.y + y, at.z));
-      cw_node3d_set_scale(V.house[c][k], v3(1.25f / sq, 1.25f * sq, 1.25f / sq));
+      cw_node3d_set_scale(V.house[c][k], v3(1.25f * LY_CITY_S / sq, 1.25f * LY_CITY_S * sq, 1.25f * LY_CITY_S / sq));
       if (V.lit_wait[c][k] > 0) V.lit_wait[c][k] -= dt;
       else {
         float to = V.lit_to[c][k];
@@ -925,14 +981,14 @@ void view_update(const kg_game *g, float dt) {
   if (marker) {
     V.marker_bob += dt;
     t3_vec3 at = g->target[t].at;
-    float r = tk == KG_T_CITY ? 0.95f : tk == KG_T_FUEL ? 0.45f : 1.75f;
+    float r = tk == KG_T_CITY ? 0.95f * LY_CITY_S : tk == KG_T_FUEL ? 0.45f : 1.75f;
     if (tk == KG_T_PLANT || tk == KG_T_OWN) at.y = (tk == KG_T_PLANT ? LY_BOARD_Y : LY_TRAY_Y) + 0.06f;
     cw_node3d_set_position(V.marker, v3(at.x, at.y + 0.08f + 0.04f * sinf(V.marker_bob * 4), at.z));
     cw_node3d_set_scale(V.marker, v3(r * (1 + 0.03f * sinf(V.marker_bob * 4)), r, r * (tk == KG_T_PLANT || tk == KG_T_OWN ? 1.3f : 1.0f)));
   }
   bk_move pv = human || g->fast ? kg_preview(g) : BK_MOVE_NONE;
   bool ghost = false;
-  static bool route[KC_NLINK];
+  static bool route[KC_MAX_LINK];
   memset(route, 0, sizeof route);
   if (pv != BK_MOVE_NONE && bk_move_field(pv, 0) == KC_M_BUILD && g->turn >= 0) {
     int c = bk_move_field(pv, 1), k = kc_house_slot(s, c);
@@ -996,18 +1052,24 @@ static void panel(float x, float y, float w, float h, float a) {
  * tags, picked from rings of spots by the fewest collisions. view_label_overlaps counts names that run into another
  * name or sit on their own city (a test checks 0); KILOWATTCOUNTRY_LABELS=below puts every name under its city as
  * before (the test's control). */
-#define LABEL_SIZE 15.0f
+#define LABEL_SIZE 14.0f
 static struct {
   float sx, sy;
-  int regions;
+  int regions, map;
   bool valid;
+  int checked; /* maps the check has placed (one a frame, so no frame stalls on the whole set) */
   cw_rect r[KC_NCITY]; /* each label's rect, canvas units (w 0: not in play) */
   cw_rect city[KC_NCITY]; /* each city's footprint */
-  int overlaps, link_hits;             /* this map */
-  int worst_overlaps, worst_link_hits; /* the worst of every map a match can deal */
+  cw_rect core[KC_NCITY]; /* the middle of each city's plinth: a name or a leader over it hides the city */
+  bool lead[KC_NCITY];    /* the name stands off from its city or nearer another: a leader line joins them */
+  cw_vec2 lead_a[KC_NCITY], lead_b[KC_NCITY]; /* the leader: from the plinth's rim to the name's nearest point */
+  int overlaps, link_hits, strays;                   /* this map */
+  int worst_overlaps, worst_link_hits, worst_strays; /* the worst of every map a match can deal */
 } LB;
 int view_label_overlaps(void) { return LB.worst_overlaps; }
+int view_label_maps(void) { return LB.checked; }
 int view_label_link_hits(void) { return LB.worst_link_hits; }
+int view_label_strays(void) { return LB.worst_strays; }
 void view_label_rects(int32_t *out) {
   for (int c = 0; c < KC_NCITY; c++) {
     out[4 * c] = (int32_t)lroundf(LB.r[c].x), out[4 * c + 1] = (int32_t)lroundf(LB.r[c].y);
@@ -1040,11 +1102,12 @@ static cw_rect city_box(int c) {
   float x0 = 1e9f, y0 = 1e9f, x1 = -1e9f, y1 = -1e9f;
   t3_vec3 pts[4 + 3 * 4];
   int n = 0;
-  pts[n++] = v3(p.x - 0.4f, p.y, p.z), pts[n++] = v3(p.x + 0.4f, p.y, p.z), pts[n++] = v3(p.x, p.y, p.z - 0.4f), pts[n++] = v3(p.x, p.y, p.z + 0.4f);
+  const float pr = 0.4f * LY_CITY_S, hw = 0.12f * LY_CITY_S, hd = 0.11f * LY_CITY_S, hh = 0.32f * LY_CITY_S;
+  pts[n++] = v3(p.x - pr, p.y, p.z), pts[n++] = v3(p.x + pr, p.y, p.z), pts[n++] = v3(p.x, p.y, p.z - pr), pts[n++] = v3(p.x, p.y, p.z + pr);
   for (int k = 0; k < 3; k++) {
     t3_vec3 r = ly_room(c, k);
-    pts[n++] = v3(r.x - 0.12f, r.y, r.z + 0.11f), pts[n++] = v3(r.x + 0.12f, r.y, r.z + 0.11f);
-    pts[n++] = v3(r.x - 0.12f, r.y + 0.32f, r.z - 0.11f), pts[n++] = v3(r.x + 0.12f, r.y + 0.32f, r.z - 0.11f);
+    pts[n++] = v3(r.x - hw, r.y, r.z + hd), pts[n++] = v3(r.x + hw, r.y, r.z + hd);
+    pts[n++] = v3(r.x - hw, r.y + hh, r.z - hd), pts[n++] = v3(r.x + hw, r.y + hh, r.z - hd);
   }
   for (int i = 0; i < n; i++) {
     cw_vec2 q = to_screen(pts[i]);
@@ -1054,6 +1117,38 @@ static cw_rect city_box(int c) {
 }
 
 static cw_rect grow(cw_rect r, float d) { return (cw_rect){ r.x - d, r.y - d, r.w + 2 * d, r.h + 2 * d }; }
+/* the gap between two rects (0 when they touch or overlap) */
+static float rect_gap(cw_rect a, cw_rect b) {
+  float dx = fmaxf(0, fmaxf(a.x - (b.x + b.w), b.x - (a.x + a.w))), dy = fmaxf(0, fmaxf(a.y - (b.y + b.h), b.y - (a.y + a.h)));
+  return sqrtf(dx * dx + dy * dy);
+}
+/* a name that reads as a neighbour's: another city in play stands as close to it as its own city does (or closer) */
+static bool label_strays(int c, cw_rect r, const bool *in, const cw_rect *city, float margin) {
+  float own = rect_gap(r, city[c]);
+  for (int o = 0; o < KC_NCITY; o++)
+    if (o != c && in[o] && rect_gap(r, city[o]) < own + margin) return true;
+  return false;
+}
+/* the leader a name needs (it stands off from its city, or as near another): from the plinth's rim at cc to the name's
+ * nearest point. False: the name sits against its own city and needs none */
+static bool label_leader(int c, cw_rect r, const bool *in, const cw_rect *city, cw_vec2 cc, float u, cw_vec2 *a, cw_vec2 *b) {
+  if (rect_gap(r, city[c]) <= 4 * u && !label_strays(c, r, in, city, 3 * u)) return false;
+  cw_vec2 p = cw_v2(fminf(fmaxf(cc.x, r.x), r.x + r.w), fminf(fmaxf(cc.y, r.y), r.y + r.h));
+  float dx = p.x - cc.x, dy = p.y - cc.y, d = sqrtf(dx * dx + dy * dy), rad = city[c].w * 0.3f;
+  *a = d > rad ? cw_v2(cc.x + dx / d * rad, cc.y + dy / d * rad) : p;
+  *b = p;
+  return true;
+}
+/* a leader over another city's plinth or another name (placed so far): it would point the wrong way */
+static int leader_hits(int c, cw_vec2 a, cw_vec2 b, const bool *in, const cw_rect *city) {
+  int n = 0;
+  for (int o = 0; o < KC_NCITY; o++) {
+    if (o == c || !in[o]) continue;
+    if (seg_hits_rect(a, b, LB.core[o])) n++;
+    if (LB.r[o].w > 0 && seg_hits_rect(a, b, LB.r[o])) n++;
+  }
+  return n;
+}
 
 /* a label rect's cost against everything else on the map: another name closer than `gap`, its own city and the
  * board's edge weigh most (names never run together), then another city's plinth, cost tags and links crossed */
@@ -1064,9 +1159,13 @@ static int label_cost(int c, cw_rect r, const bool *in, const cw_rect *city, con
   for (int o = 0; o < KC_NCITY; o++) {
     if (!in[o]) continue;
     if (rect_hit(r, city[o])) cost += o == c ? 1000 : 150;
+    if (o != c && rect_hit(r, LB.core[o])) cost += 2000; /* over the plinth itself: it hides a city */
     if (o != c && LB.r[o].w > 0 && rect_hit(rg, LB.r[o])) cost += 1000;
   }
   if (r.x < board.x || r.y < board.y || r.x + r.w > board.x + board.w || r.y + r.h > board.y + board.h) cost += 1000;
+  cw_vec2 la, lb;
+  if (label_leader(c, r, in, city, at[c], gap / 6, &la, &lb)) /* a leader: allowed, but never over another city or name */
+    cost += 30 + 2000 * leader_hits(c, la, lb, in, city);
   for (int l = 0; l < KC_NLINK; l++) {
     if (!link_in[l]) continue;
     if (rect_hit(r, tag[l])) cost += 20;
@@ -1082,16 +1181,18 @@ static void layout_labels(int regions, cw_vec2 sz) {
   bool below = mode && strcmp(mode, "below") == 0;
   cw_vec2 at[KC_NCITY], lsz[KC_NCITY];
   bool in[KC_NCITY];
-  cw_rect city[KC_NCITY], tag[KC_NLINK];
+  cw_rect city[KC_NCITY], tag[KC_MAX_LINK];
   for (int c = 0; c < KC_NCITY; c++) {
     in[c] = (regions >> kc_cities[c].region) & 1;
     at[c] = to_screen(ly_city(c));
     city[c] = LB.city[c] = city_box(c);
+    LB.core[c] = (cw_rect){ at[c].x - 0.15f * city[c].w, at[c].y - 0.12f * city[c].h, 0.3f * city[c].w, 0.24f * city[c].h };
     LB.r[c] = (cw_rect){ 0, 0, 0, 0 };
+    LB.lead[c] = false;
     cw_text_metrics m = cw_font_measure(font(), kc_cities[c].name, &(cw_text_style){ .size = LABEL_SIZE * u });
     lsz[c] = cw_v2(m.width + 2 * u, m.height);
   }
-  bool link_in[KC_NLINK];
+  bool link_in[KC_MAX_LINK];
   for (int l = 0; l < KC_NLINK; l++) {
     int a = kc_links[l].a, b = kc_links[l].b;
     link_in[l] = in[a] && in[b];
@@ -1101,9 +1202,9 @@ static void layout_labels(int regions, cw_vec2 sz) {
   /* the map's top face on screen, less a margin: names stay on the board */
   cw_vec2 b0 = to_screen(v3(LY_MAP_X0, LY_BOARD_Y, LY_MAP_Z0)), b1 = to_screen(v3(LY_MAP_X0 + LY_MAP_W, LY_BOARD_Y, LY_MAP_Z0 + LY_MAP_D));
   cw_rect board = { b0.x + 4 * u, b0.y + 4 * u, b1.x - b0.x - 8 * u, b1.y - b0.y - 8 * u };
-  /* candidate spots: sixteen directions around the city, at three distances; the label's nearest edge or corner sits
+  /* candidate spots: sixteen directions around the city, at five distances; the label's nearest edge or corner sits
    * just off the city's footprint along each */
-  enum { DIRS = 16, RINGS = 3, NS = DIRS * RINGS };
+  enum { DIRS = 16, RINGS = 5, NS = DIRS * RINGS };
   cw_rect cand[KC_NCITY][NS];
   for (int c = 0; c < KC_NCITY; c++) {
     if (!in[c]) continue;
@@ -1122,7 +1223,9 @@ static void layout_labels(int regions, cw_vec2 sz) {
     if (below) cand[c][0] = (cw_rect){ at[c].x - lw * 0.5f, at[c].y + 13 * u, lw, lh }; /* the old place: under the city */
   }
   /* greedy, then passes that move each name to its best spot given all the others */
-  for (int pass = 0; pass < (below ? 1 : 8); pass++) {
+  /* (three rounds of: passes, then the pairs still too close moved together) */
+  for (int outer = 0; outer < (below ? 1 : 3); outer++) {
+  for (int pass = 0; pass < (below ? 1 : 16); pass++) {
     bool moved = false;
     for (int c = 0; c < KC_NCITY; c++) {
       if (!in[c]) continue;
@@ -1139,11 +1242,42 @@ static void layout_labels(int regions, cw_vec2 sz) {
     }
     if (!moved) break;
   }
-  /* what still collides (the check): names closer than 3 units to a name, or over their own city; and (looser) names
-   * over another city's plinth, a cost tag or a link */
-  LB.overlaps = LB.link_hits = 0;
+  /* two names still too close: both move together, to the pair of spots that costs least */
+  static const int PAIR_DIR_COST[DIRS] = { 0, 14, 18, 14, 10, 14, 18, 14, 6, 14, 18, 14, 10, 14, 18, 14 };
+  for (int round = 0, fixed = 1; round < 6 && fixed && !below; round++) {
+   fixed = 0;
+   for (int c = 0; c < KC_NCITY; c++) {
+    if (!in[c]) continue;
+    for (int o = c + 1; o < KC_NCITY; o++) {
+      if (!in[o] || !rect_hit(grow(LB.r[c], 3 * u), LB.r[o])) continue;
+      fixed++;
+      LB.r[o] = (cw_rect){ 0, 0, 0, 0 }; /* (out of the way while c's spots are weighed) */
+      int bc = -1, bo = -1, best = 1 << 30;
+      for (int kc = 0; kc < NS; kc++) {
+        LB.r[c] = cand[c][kc];
+        int cc = label_cost(c, cand[c][kc], in, city, at, link_in, tag, board, 6 * u) + (kc / DIRS) * 40 + PAIR_DIR_COST[kc % DIRS];
+        if (cc >= best) continue;
+        for (int ko = 0; ko < NS; ko++) {
+          int co = cc + label_cost(o, cand[o][ko], in, city, at, link_in, tag, board, 6 * u) + (ko / DIRS) * 40 + PAIR_DIR_COST[ko % DIRS];
+          if (co < best) best = co, bc = kc, bo = ko;
+        }
+      }
+      LB.r[c] = cand[c][bc], LB.r[o] = cand[o][bo];
+    }
+   }
+  }
+  }
+  /* what still collides (the check): names closer than 3 units to a name, or over their own city; strays: a name over
+   * the middle of another city's plinth (it hides that city) or a leader over another city or name (it points the
+   * wrong way); and (looser) names over another city's footprint, a cost tag or a link */
+  LB.overlaps = LB.link_hits = LB.strays = 0;
   for (int c = 0; c < KC_NCITY; c++) {
     if (!in[c]) continue;
+    /* a name off its city, or nearer another, gets a leader; a leader over another city or name is a stray */
+    LB.lead[c] = label_leader(c, LB.r[c], in, city, at[c], u, &LB.lead_a[c], &LB.lead_b[c]);
+    if (LB.lead[c]) LB.strays += leader_hits(c, LB.lead_a[c], LB.lead_b[c], in, city);
+    for (int o = 0; o < KC_NCITY; o++)
+      if (o != c && in[o] && rect_hit(LB.r[c], LB.core[o])) LB.strays++; /* a name hiding a city */
     for (int o = 0; o < KC_NCITY; o++) {
       if (!in[o]) continue;
       if (o > c && rect_hit(grow(LB.r[c], 3 * u), LB.r[o])) LB.overlaps++; /* names run together */
@@ -1158,16 +1292,26 @@ static void layout_labels(int regions, cw_vec2 sz) {
 }
 
 static void place_labels(const kc_state *s, cw_vec2 sz) {
-  if (LB.valid && LB.sx == sz.x && LB.sy == sz.y && LB.regions == s->regions) return;
-  LB.valid = true, LB.sx = sz.x, LB.sy = sz.y, LB.regions = s->regions;
-  /* the check covers every map a match can deal (three, four or five regions), not just this one */
-  LB.worst_overlaps = LB.worst_link_hits = 0;
-  for (int m = 0; m < 32; m++) {
-    if (__builtin_popcount((unsigned)m) < 3) continue;
-    layout_labels(m, sz);
-    if (LB.overlaps > LB.worst_overlaps) LB.worst_overlaps = LB.overlaps;
-    if (LB.link_hits > LB.worst_link_hits) LB.worst_link_hits = LB.link_hits;
+  bool resized = LB.sx != sz.x || LB.sy != sz.y;
+  if (resized) LB.checked = 0, LB.worst_overlaps = LB.worst_link_hits = LB.worst_strays = 0, LB.sx = sz.x, LB.sy = sz.y, LB.valid = false;
+  /* the check covers every map a match can deal: each of the maps, each joined set of three, four or five regions on
+   * it (placed for the check, then thrown away); one map a frame */
+  if (LB.checked < KC_NMAPS) {
+    int keep = kc_map_active;
+    kc_use_map(LB.checked);
+    for (int i = 0; i < 3; i++)
+      for (int k = 0; k < kc_map->nsets[i]; k++) {
+        layout_labels(kc_map->sets[i][k], sz);
+        if (LB.overlaps > LB.worst_overlaps) LB.worst_overlaps = LB.overlaps;
+        if (LB.link_hits > LB.worst_link_hits) LB.worst_link_hits = LB.link_hits;
+        if (LB.strays > LB.worst_strays) LB.worst_strays = LB.strays;
+      }
+    kc_use_map(keep);
+    LB.checked++;
+    LB.valid = false; /* the names of the map on the table are placed again below */
   }
+  if (LB.valid && !resized && LB.regions == s->regions && LB.map == kc_map_active) return;
+  LB.valid = true, LB.sx = sz.x, LB.sy = sz.y, LB.regions = s->regions, LB.map = kc_map_active;
   layout_labels(s->regions, sz);
 }
 
@@ -1243,8 +1387,67 @@ static void phase_line(const kc_state *s, char *buf, size_t cap) {
   snprintf(buf, cap, "Round %d   Step %d   %s   First to %d cities ends the game", s->round, s->step, what, kc_end_cities(s));
 }
 
+/* every city in play's name, on its placed spot; a name that had to stand off from its city gets a thin leader to it */
+static void city_names(const kc_state *s, float u) {
+  for (int c = 0; c < KC_NCITY; c++) {
+    if (!kc_region_in(s, kc_cities[c].region)) continue;
+    cw_rect r = LB.r[c];
+    if (LB.lead[c]) {
+      cw_r2d_line(LB.lead_a[c], LB.lead_b[c], 1.6f * u, cw_rgba(0.85f, 0.9f, 1.0f, 0.7f));
+      cw_r2d_circle(LB.lead_a[c], 2.4f * u, 10, cw_rgba(0.9f, 0.94f, 1.0f, 0.85f));
+    }
+    /* a dark pill behind the name: it reads over a link or the edge of a neighbour's plinth */
+    cw_r2d_round_rect(grow(r, 2 * u), 6 * u, 6, cw_rgba(0.02f, 0.03f, 0.07f, 0.62f));
+    text(kc_cities[c].name, r.x + r.w * 0.5f, r.y, LABEL_SIZE * u, rgba(0xe4ecf8ff), CW_ALIGN_CENTER);
+  }
+}
+
+/* the setup card: the maps down the left (the one picked marked), Begin under them, what the map picked is like */
+static void hud_setup(const kg_game *g, cw_vec2 sz, float u) {
+  const kc_state *s = &g->shown;
+  place_labels(s, sz);
+  if (g->help) { view_help(sz, true); return; }
+  city_names(s, u);
+  const kc_map_def *m = kc_map;
+  int lo = 99, hi = 0;
+  for (int i = 0; i < m->nlink; i++) lo = m->links[i].cost < lo ? m->links[i].cost : lo, hi = m->links[i].cost > hi ? m->links[i].cost : hi;
+  int dealt = 0;
+  for (int r = 0; r < KC_NREGION; r++) dealt += kc_region_in(s, r);
+  float pw = 820 * u, px = sz.x * 0.5f - pw * 0.5f, py = 8 * u;
+  panel(px, py, pw, 112 * u, 1);
+  panel(px, py, pw, 112 * u, 1);
+  char line[200];
+  snprintf(line, sizeof line, "Choose the map: %s", m->title);
+  text(line, sz.x * 0.5f, py + 8 * u, 26 * u, rgba(0xffd890ff), CW_ALIGN_CENTER);
+  snprintf(line, sizeof line, "%d real cities in %d regions. A link costs $2 plus $1 for every %d km: $%d to $%d here.", KC_NCITY, KC_NREGION,
+           m->km_per, lo, hi);
+  text(line, sz.x * 0.5f, py + 44 * u, 17 * u, rgba(0xe8eef6ff), CW_ALIGN_CENTER);
+  snprintf(line, sizeof line, "%d companies play on %d of the %d regions; the dark ones sit out this game.", g->players, dealt, KC_NREGION);
+  text(line, sz.x * 0.5f, py + 74 * u, 17 * u, rgba(0xc8d4e2ff), CW_ALIGN_CENTER);
+  int t = kg_cursor(g);
+  for (int i = 0; i < g->ntargets; i++) {
+    const kg_target *tt = &g->target[i];
+    cw_vec2 p = to_screen(tt->at);
+    bool on = i == t, chosen = tt->kind == KG_T_MAP && tt->value == g->map, begin = tt->kind == KG_T_BEGIN;
+    float bw = 200 * u, bh = (begin ? 40 : 34) * u;
+    cw_rect b = { p.x - bw / 2, p.y - bh / 2, bw, bh };
+    cw_r2d_round_rect(b, 9 * u, 6, on ? cw_rgba(0.98f, 0.8f, 0.42f, 0.96f) : begin ? cw_rgba(0.12f, 0.2f, 0.12f, 0.92f) : cw_rgba(0.05f, 0.07f, 0.12f, 0.9f));
+    cw_r2d_round_rect_lines(b, 9 * u, (chosen ? 3.0f : 1.5f) * u, 6, chosen ? cw_rgba(1, 0.86f, 0.5f, 1) : cw_rgba(0.95f, 0.72f, 0.35f, 0.55f));
+    if (chosen) cw_r2d_circle(cw_v2(b.x + 14 * u, p.y), 5 * u, 12, on ? cw_rgba(0.1f, 0.07f, 0.02f, 1) : cw_rgba(1, 0.86f, 0.5f, 1));
+    const char *lab = begin ? "Begin" : kc_maps[tt->value].title;
+    text(lab, p.x + (chosen ? 6 * u : 0), p.y - (begin ? 12 : 11) * u, (begin ? 20 : 17) * u, on ? cw_rgba(0.1f, 0.07f, 0.02f, 1) : cw_rgba(1, 0.96f, 0.88f, 1), CW_ALIGN_CENTER);
+  }
+  cw_prompt_text(font(), "{left|right} {up|down} choose    {choose} pick    {how_to_play} how to play", g->turn, cw_v2(sz.x * 0.5f, sz.y - 30 * u), 18 * u,
+                 cw_rgba(1, 0.97f, 0.92f, 0.95f), CW_ALIGN_CENTER);
+}
+
 void view_hud(const kg_game *g, float dt) {
   (void)dt;
+  if (g->setup) {
+    cw_vec2 sz = cw_r2d_canvas_size();
+    hud_setup(g, sz, sz.y / 720.0f);
+    return;
+  }
   if (!g->match) return;
   cw_vec2 sz = cw_r2d_canvas_size();
   float u = sz.y / 720.0f;
@@ -1309,13 +1512,7 @@ void view_hud(const kg_game *g, float dt) {
     }
     p = to_screen(v3(LY_FUEL_X0 + LY_FUEL_W * 0.5f, 0.05f, ly_fuel_row_z(0) - 1.0f));
     text("Fuel, $ each: the cheapest left sets the price", p.x, p.y - 30 * u, 15 * u, rgba(0xf4e2c0ff), CW_ALIGN_CENTER);
-    for (int c = 0; c < KC_NCITY; c++) {
-      if (!kc_region_in(s, kc_cities[c].region)) continue;
-      cw_rect r = LB.r[c];
-      /* a dark pill behind the name: it reads over a link or the edge of a neighbour's plinth */
-      cw_r2d_round_rect(grow(r, 2 * u), 6 * u, 6, cw_rgba(0.02f, 0.03f, 0.07f, 0.62f));
-      text(kc_cities[c].name, r.x + r.w * 0.5f, r.y, LABEL_SIZE * u, rgba(0xe4ecf8ff), CW_ALIGN_CENTER);
-    }
+    city_names(s, u);
     int focus_city = -1;
     {
       int t = kg_cursor(g);

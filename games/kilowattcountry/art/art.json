@@ -5,9 +5,10 @@
   "logo": "logo.png",
   "title": "title.jpg",
   "screenshots": [
-    { "path": "shot-1.jpg", "label": "Early rounds: four companies hold their first plants while houses go up across the night map" },
-    { "path": "shot-2.jpg", "label": "Mid game: cities glow where companies powered them, the fuel market thins out as prices climb" },
-    { "path": "shot-3.jpg", "label": "Step 2: two companies share cities, bigger plants come up for auction" },
-    { "path": "shot-4.jpg", "label": "Late game: most of the country lit, every company racing for the city goal" }
+    { "path": "shot-1.jpg", "label": "Choose the map: seven real countries and areas, each dealt with the regions in play" },
+    { "path": "shot-2.jpg", "label": "United States: four companies wire up cities from coast to coast between plant auctions" },
+    { "path": "shot-3.jpg", "label": "Central Europe: cities glow where companies powered them, the fuel market thins out as prices climb" },
+    { "path": "shot-4.jpg", "label": "France: two companies share cities in step 2 while bigger plants come up for auction" },
+    { "path": "shot-5.jpg", "label": "Great Lakes: houses on both shores, every company racing for the city goal" }
   ]
 }

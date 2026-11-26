@@ -1,8 +1,8 @@
-// Kilowatt Country's rules headless (games/kilowattcountry/tests/test_rules.c): setup at every player count, fuel
-// prices and storage, routes against an independent shortest path, auctions and a fourth plant, invariants over
-// random and playout games at 2, 3 and 4 seats with a legal winner, determinism, full CPU games and a CPU beating
-// random play; each with a control that must fail. Also the map and plant balance check
-// (games/kilowattcountry/tools/gen-data.mjs) and its controls.
+// Kilowatt Country's rules headless (games/kilowattcountry/tests/test_rules.c): on every map, setup at every player
+// count, routes against an independent shortest path, invariants over random and playout games at 2, 3 and 4 seats
+// with a legal winner, determinism and full CPU games; once, fuel prices and storage, auctions and a fourth plant and a
+// CPU beating random play; each with a control that must fail. Also the maps and plant balance check
+// (games/kilowattcountry/tools/gen-data.mjs: the files match the data, every map holds its rules) and its controls.
 //
 //   node tests/kilowattcountry-rules.mjs      (builds build/native first)
 import { spawnSync } from 'node:child_process';
@@ -26,6 +26,6 @@ const r = spawnSync(exe, [], { encoding: 'utf8', timeout: 900000 });
 const out = `${r.stdout || ''}${r.stderr || ''}`;
 const controls = (out.match(/^CONTROL .* caught$/gm) || []).length;
 if (r.status !== 0) fail(`kilowattcountry rules (exit ${r.status ?? r.signal})\n${out}`);
-if (controls < 7) fail(`kilowattcountry rules: ${controls} controls caught, expected 7\n${out}`);
-console.log(out.split('\n').filter((l) => /^(\d players|CPU game|ok )/.test(l)).join('\n'));
+if (controls < 25) fail(`kilowattcountry rules: ${controls} controls caught, expected 25 (3 a map, 4 once)\n${out}`);
+console.log(out.split('\n').filter((l) => /^(map |\d players|CPU game|ok )/.test(l)).join('\n'));
 console.log(`ok   kilowattcountry rules (${controls} controls caught)`);

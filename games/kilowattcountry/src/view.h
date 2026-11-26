@@ -18,7 +18,11 @@ int view_lit(void); /* houses glowing now (a debug field) */
 /* city names that run into another name or sit on their own city, and names over another city, a cost tag or a
  * link: the worst over every map a match can deal (debug fields) */
 int view_label_overlaps(void);
+int view_label_maps(void); /* maps the check has covered so far (it places one map's names a frame, KC_NMAPS in all) */
 int view_label_link_hits(void);
+/* city names that mislead: a name over the middle of another city's plinth, or a leader (drawn from a name that had to
+ * stand off from its city) over another city or name; the worst over every map a match can deal (a debug field) */
+int view_label_strays(void);
 /* each city name's rect on this map, then each city's footprint, canvas units (x, y, w, h; a name of w 0 is not
  * in play): a debug field of 8 * KC_NCITY */
 void view_label_rects(int32_t *out);

@@ -2,12 +2,21 @@ Kilowatt Country (kilowattcountry)
 
 Inspired by Power Grid.
 
-Game design, rules text, the map, the power plants, code and art: Luis Montes. The rules are restated in our own
-words; the country, its cities and links (games/kilowattcountry/tools/gen-data.mjs, a seeded scatter and its
-Gabriel graph) and the plant set (the same script, balance-checked against a worth line) are our own. Every
-texture is drawn by games/kilowattcountry/tools/make-textures.mjs, the plant cards are painted in the game, and
-the sounds are synthesised in code.
+Game design, rules text, the maps, the power plants, code and art: Luis Montes. The rules are restated in our own
+words. The maps are real countries and areas: games/kilowattcountry/tools/gen-maps.mjs picks each map's thirty cities
+and links them by its own rules (population and spacing, a Delaunay triangulation cut to its Gabriel edges, five
+regions of six grown along the links, each link's cost from the real distance between its cities), and
+games/kilowattcountry/tools/make-textures.mjs draws each night map, the table and the glow. The plant set
+(games/kilowattcountry/tools/gen-data.mjs) is our own, balance-checked against a worth line. The plant cards are
+painted in the game, and the sounds are synthesised in code.
+
+Map data:
+- City names, places and populations: GeoNames (geonames.org), licensed under Creative Commons Attribution 4.0
+  (https://creativecommons.org/licenses/by/4.0/). Extract in games/kilowattcountry/data/places.tsv (towns and cities
+  in the maps' countries; names written without accents, a few in their English form, trailing parts such as
+  "am Main" cut).
+- Land, country borders, lakes, rivers and state lines: Natural Earth (naturalearthdata.com), public domain.
 
 Built with cartwheel-engine and three.c (MIT). The font is the engine's built-in sans (see the engine's NOTICE).
-The logo font is Fira Sans Bold (SIL Open Font Licence, shipped with the engine's samples).
+The logo font is Oswald (SIL Open Font Licence, games/kilowattcountry/tools/fonts).
 Licence: MIT (the repository's LICENSE).

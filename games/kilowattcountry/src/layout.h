@@ -23,10 +23,12 @@
 static inline t3_vec3 ly_city(int c) {
   return (t3_vec3){ LY_MAP_X0 + kc_cities[c].x * LY_MAP_W, LY_BOARD_Y, LY_MAP_Z0 + kc_cities[c].z * LY_MAP_D };
 }
+/* a city's pieces (plinth, rooms, houses) at this scale: small enough that real cities close together stay apart */
+#define LY_CITY_S 0.72f
 /* a house's room in a city: three around the city's centre */
 static inline t3_vec3 ly_room(int c, int k) {
   t3_vec3 p = ly_city(c);
-  static const float dx[3] = { -0.21f, 0.21f, 0.0f }, dz[3] = { 0.12f, 0.12f, -0.23f };
+  static const float dx[3] = { -0.21f * LY_CITY_S, 0.21f * LY_CITY_S, 0.0f }, dz[3] = { 0.12f * LY_CITY_S, 0.12f * LY_CITY_S, -0.23f * LY_CITY_S };
   return (t3_vec3){ p.x + dx[k], p.y + 0.06f, p.z + dz[k] };
 }
 /* the plant market: two rows of four on the left (in step 3 all six can be bought) */

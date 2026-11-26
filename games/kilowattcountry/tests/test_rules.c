@@ -8,6 +8,7 @@
 #include "rules.h"
 
 static int fails = 0;
+static int MAP = 0; /* the map every test plays on (main runs the map tests on each) */
 #define CONTROL(c, ...) do { if (c) { printf("CONTROL "); printf(__VA_ARGS__); printf(": caught\n"); } else { fails++; fprintf(stderr, "FAIL CONTROL not caught: "); fprintf(stderr, __VA_ARGS__); fputc('\n', stderr); } } while (0)
 #define CHECK(c, ...) do { if (!(c)) { fails++; fprintf(stderr, "FAIL %s:%d: ", __FILE__, __LINE__); fprintf(stderr, __VA_ARGS__); fputc('\n', stderr); } } while (0)
 
@@ -91,7 +92,7 @@ static result play(int players, uint64_t seed, policy_fn pol, void *ctx, bool ch
   bk_game g;
   kc_game(&g, players);
   kc_state s;
-  kc_init(&s, players, seed);
+  kc_init(&s, players, MAP, seed);
   cw_rng rng;
   cw_rng_seed(&rng, seed ^ 0xabcdef);
   result r = { 0 };
@@ -126,7 +127,7 @@ static result play(int players, uint64_t seed, policy_fn pol, void *ctx, bool ch
 static void test_setup(void) {
   for (int n = 2; n <= 4; n++) {
     kc_state s;
-    kc_init(&s, n, 99 + n);
+    kc_init(&s, n, MAP, 99 + n);
     int regions = 0;
     for (int r = 0; r < KC_NREGION; r++) regions += kc_region_in(&s, r);
     CHECK(regions == kc_regions_used[n], "%d players: %d regions", n, regions);
@@ -146,14 +147,14 @@ static void test_setup(void) {
   }
   printf("ok   setup at 2, 3 and 4 players\n");
   kc_state s;
-  kc_init(&s, 3, 5);
+  kc_init(&s, 3, MAP, 5);
   s.p[1].money = -1;
   CONTROL(invariant_error(&s) != NULL, "negative money is an invariant error");
 }
 
 static void test_fuel(void) {
   kc_state s;
-  kc_init(&s, 2, 1);
+  kc_init(&s, 2, MAP, 1);
   /* coal: 21 in the market, prices 1..8 three each, filled from the top: the cheapest left is 2 */
   CHECK(kc_fuel_price(&s, KC_COAL) == 2, "coal price %d", kc_fuel_price(&s, KC_COAL));
   CHECK(kc_fuel_cost(&s, KC_COAL, 4) == 2 + 2 + 2 + 3, "4 coal cost %d", kc_fuel_cost(&s, KC_COAL, 4));
@@ -201,7 +202,7 @@ static void test_routes(void) {
   int checked = 0;
   for (int n = 2; n <= 4; n++) {
     kc_state s;
-    kc_init(&s, n, 7 * n);
+    kc_init(&s, n, MAP, 7 * n);
     int first = -1;
     for (int c = 0; c < KC_NCITY && first < 0; c++)
       if (kc_region_in(&s, kc_cities[c].region)) first = c;
@@ -222,14 +223,14 @@ static void test_routes(void) {
   }
   printf("ok   routes: %d build costs match an independent shortest path\n", checked);
   kc_state s;
-  kc_init(&s, 4, 3);
+  kc_init(&s, 4, MAP, 3);
   s.occ[0][0] = 0, s.p[0].ncity = 1;
   CONTROL(kc_build_cost(&s, 0, 1, NULL) != kc_house_cost[0], "a second city costs more than the house alone");
 }
 
 static void test_auction(void) {
   kc_state s;
-  kc_init(&s, 3, 11);
+  kc_init(&s, 3, MAP, 11);
   bk_game g;
   kc_game(&g, 3);
   int opener = s.cur;
@@ -251,7 +252,7 @@ static void test_auction(void) {
   CHECK(s.nmarket == 8 && s.cur == opener, "the opener opens again (cur %d)", s.cur);
   (void)third;
   /* a fourth plant replaces one */
-  kc_init(&s, 2, 4);
+  kc_init(&s, 2, MAP, 4);
   s.p[s.cur].plants[0] = 8, s.p[s.cur].plants[1] = 9, s.p[s.cur].plants[2] = 10;
   for (int i = 8; i <= 10; i++) s.loc[i] = KC_L_OWNED;
   int me = s.cur;
@@ -291,12 +292,15 @@ static void test_games(void) {
   CONTROL(a.hash != c.hash, "another seed plays another game");
 }
 
-static void test_cpu(void) {
+static void test_cpu_games(void) {
   for (int n = 2; n <= 4; n++) {
     int lv[4] = { 1, 1, 1, 1 };
     result r = play(n, 500 + (uint64_t)n, pol_cpu, lv, true);
     if (r.ok) printf("CPU game: %d Normal CPUs, %d rounds, %d moves, step %d, winner seat %d\n", n, r.rounds, r.moves, r.step, r.winner);
   }
+}
+
+static void test_cpu_random(void) {
   /* a Normal CPU against random play */
   int won = 0, games = 12;
   for (int k = 0; k < games; k++) {
@@ -318,12 +322,18 @@ static void test_cpu(void) {
 }
 
 int main(void) {
-  test_setup();
+  /* the map's own parts on every map: setup, routes, random and playout games at every player count, CPU games */
+  for (MAP = 0; MAP < KC_NMAPS; MAP++) {
+    printf("map %s\n", kc_maps[MAP].title);
+    test_setup();
+    test_routes();
+    test_games();
+    test_cpu_games();
+  }
+  MAP = 0;
   test_fuel();
-  test_routes();
   test_auction();
-  test_games();
-  test_cpu();
+  test_cpu_random();
   if (fails) { fprintf(stderr, "%d failures\n", fails); return 1; }
   printf("all passed\n");
   return 0;

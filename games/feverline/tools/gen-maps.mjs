@@ -28,34 +28,15 @@
 // cities from GeoNames (CC BY 4.0, geonames.org): `--extract <cities15000.txt>` keeps the places the maps can use
 // (towns and cities, not city districts, the bigger ones) in data/places.tsv, which is committed, so the maps are
 // made the same way every time.
-import { createHash } from 'node:crypto';
-import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { delaunay, landRings, loadData, onLand, segCross } from '../../common/geo/geo.mjs';
+
+export { loadData, onLand };
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const GAME = join(HERE, '..');
-const ROOT = join(GAME, '..', '..');
-const CACHE = join(ROOT, 'out', 'ne-cache');
-const NE = 'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/v5.1.2/geojson';
-const DATA = {
-  land50: ['ne_50m_land.geojson', 'e874b27a51d146452be360cafb3cc50c86001074a67d534113e6534682f9826b'],
-  land110: ['ne_110m_land.geojson', '9e0729ee253ca7d7a5c4ae9395fb1902264c5377c52e224d13dd85010e2835d9'],
-};
-export function loadData(name) {
-  const [file, sha] = DATA[name];
-  const path = join(CACHE, file);
-  if (!existsSync(path)) {
-    mkdirSync(CACHE, { recursive: true });
-    execFileSync('curl', ['-sfL', '-o', path, `${NE}/${file}`]);
-  }
-  const buf = readFileSync(path);
-  const got = createHash('sha256').update(buf).digest('hex');
-  if (got !== sha) throw new Error(`${file}: sha256 ${got}, expected ${sha}`);
-  return JSON.parse(buf.toString('utf8'));
-}
-
 export const BOARD_W = 22, BOARD_D = 12.4;
 const FIT_W = 20.0, FIT_D = 10.8; // the cities' area inside the board's frame
 export const MAPS = [
@@ -70,32 +51,6 @@ export const MAPS = [
   { key: 'japan', title: 'Japan', cure: 3, calm: 2, lon: [129.5, 145.5], lat: [31, 44], n: 40, land: 'land50', turn: true },
 ];
 
-// ── geometry ───────────────────────────────────────────────────────
-function landRings(geo) {
-  const rings = [];
-  for (const f of geo.features) {
-    const g = f.geometry;
-    const polys = g.type === 'Polygon' ? [g.coordinates] : g.coordinates;
-    for (const p of polys)
-      for (const r of p) {
-        let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
-        for (const [x, y] of r) x0 = Math.min(x0, x), x1 = Math.max(x1, x), y0 = Math.min(y0, y), y1 = Math.max(y1, y);
-        rings.push({ pts: r, box: [x0, y0, x1, y1] });
-      }
-  }
-  return rings;
-}
-export function onLand(rings, lon, lat) {
-  let inside = false;
-  for (const { pts, box } of rings) {
-    if (lon < box[0] || lon > box[2] || lat < box[1] || lat > box[3]) continue;
-    for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
-      const [xi, yi] = pts[i], [xj, yj] = pts[j];
-      if ((yi > lat) !== (yj > lat) && lon < ((xj - xi) * (lat - yi)) / (yj - yi) + xi) inside = !inside;
-    }
-  }
-  return inside;
-}
 /* a map's projection: lon/lat to board x/z and back */
 export function projection(m) {
   const latm = (m.lat[0] + m.lat[1]) / 2, k = Math.cos((latm * Math.PI) / 180), lonm = (m.lon[0] + m.lon[1]) / 2;
@@ -119,38 +74,6 @@ export function projection(m) {
     return [rx / k + lonm, -ry + latm];
   };
   return { fwd, inv, params: { lonm, latm, k, deg: best.deg, scale: best.scale, cx: best.cx, cy: best.cy } };
-}
-
-// Bowyer-Watson Delaunay triangulation of points [[x, y]...]: triangles as index triples
-function delaunay(P) {
-  const n = P.length, big = 1e4;
-  const pts = P.concat([[-big, -big], [big, -big], [0, big]]);
-  let tris = [[n, n + 1, n + 2]];
-  const circ = (t) => {
-    const [ax, ay] = pts[t[0]], [bx, by] = pts[t[1]], [cx, cy] = pts[t[2]];
-    const d = 2 * (ax * (by - cy) + bx * (cy - ay) + cx * (ay - by));
-    const ux = ((ax * ax + ay * ay) * (by - cy) + (bx * bx + by * by) * (cy - ay) + (cx * cx + cy * cy) * (ay - by)) / d;
-    const uy = ((ax * ax + ay * ay) * (cx - bx) + (bx * bx + by * by) * (ax - cx) + (cx * cx + cy * cy) * (bx - ax)) / d;
-    return [ux, uy, (ax - ux) ** 2 + (ay - uy) ** 2];
-  };
-  for (let i = 0; i < n; i++) {
-    const [px, py] = pts[i];
-    const bad = tris.filter((t) => { const [ux, uy, r2] = circ(t); return (px - ux) ** 2 + (py - uy) ** 2 < r2; });
-    const edges = new Map();
-    for (const t of bad)
-      for (const [a, b] of [[t[0], t[1]], [t[1], t[2]], [t[2], t[0]]]) {
-        const k = a < b ? `${a},${b}` : `${b},${a}`;
-        edges.set(k, (edges.get(k) || 0) + 1);
-      }
-    tris = tris.filter((t) => !bad.includes(t));
-    for (const [k, c] of edges) if (c === 1) { const [a, b] = k.split(',').map(Number); tris.push([a, b, i]); }
-  }
-  return tris.filter((t) => t.every((v) => v < n));
-}
-
-function segCross(a, b, c, d) {
-  const o = (p, q, r) => Math.sign((q[0] - p[0]) * (r[1] - p[1]) - (q[1] - p[1]) * (r[0] - p[0]));
-  return o(a, b, c) * o(a, b, d) < 0 && o(c, d, a) * o(c, d, b) < 0;
 }
 
 // ── one map ────────────────────────────────────────────────────────

@@ -29,7 +29,7 @@ and open one in any wasmcart player.
 | [Smokestack](#smokestack) | 1-4 | lay track across a hex valley and haul goods to the cities that want them | playable |
 | [Lantern Harbor](#lantern-harbor) | 1-4 | take a job each round and grow a lantern-lit harbour town | playable |
 | [Rose Window](#rose-window) | 1-4 | draft glass dice into your own stained-glass window | playable |
-| [Kilowatt Country](#kilowatt-country) | 1-4 | bid on power plants, buy fuel and light up cities | playable |
+| [Kilowatt Country](#kilowatt-country) | 1-4 | bid on power plants, buy fuel and light up real cities on seven maps | playable |
 | [Mandible](#mandible) | 1-2 | surround the rival Empress with carved insect pieces | playable |
 | [Fever Line](#fever-line) | 1-4 | work together to cure four fevers spreading across a map | playable |
 
@@ -128,12 +128,16 @@ leftover favour score, and every empty pane costs a point; alone, you try to bea
 
 ### Kilowatt Country
 
-![Kilowatt Country, round 8: a night map of a fictional country with every city named and many glowing warm around houses in four company colours, plants for sale and the plants set aside this game on the left, the fuel market on the right with a computer choosing how much oil to buy, and each company's plant cards and stored fuel along the near edge](docs/screenshots/kilowattcountry.jpg)
-Bid for power plants at auction, buy coal, oil, garbage or uranium as prices climb, and wire houses into cities across
-a night map, paying for every link from your network. Each round your plants burn their fuel to light your cities and
-pay you for each one lit. When a company reaches the city goal, the most cities lit that round wins.
+![Kilowatt Country, round 7 on the Central Europe map: a night map with Amsterdam, Berlin, Prague, Vienna, Warsaw and Budapest among thirty named real cities, houses in four company colours glowing in the north-west and Poland, plants for sale on the left, the fuel market on the right, and each company's plant cards along the near edge](docs/screenshots/kilowattcountry.jpg)
+Bid for power plants at auction, buy coal, oil, garbage or uranium as prices climb, and wire houses into real cities
+across a night map, paying for every link from your network by its real distance. Each round your plants burn their
+fuel to light your cities and pay you for each one lit. When a company reaches the city goal, the most cities lit that
+round wins.
 
-- **Players:** 2-4, any mix of people and computer opponents; one person plays a Normal computer opponent
+- **Players:** 2-4, any mix of people and computer opponents (Easy, Normal or Hard); one person plays a Normal
+  computer opponent; 2 players get three of a map's five regions, 3 get four, 4 get all five
+- **Maps:** United States, Eastern States, Great Lakes, France, Iberia, The Balkans, Central Europe: thirty cities
+  each (city data from GeoNames, CC BY 4.0; land, borders, lakes and rivers from Natural Earth)
 - **Folder:** `games/kilowattcountry`
 - **Credits:** inspired by Power Grid
 
