@@ -1063,13 +1063,15 @@ static struct {
   cw_rect core[KC_NCITY]; /* the middle of each city's plinth: a name or a leader over it hides the city */
   bool lead[KC_NCITY];    /* the name stands off from its city or nearer another: a leader line joins them */
   cw_vec2 lead_a[KC_NCITY], lead_b[KC_NCITY]; /* the leader: from the plinth's rim to the name's nearest point */
-  int overlaps, link_hits, strays;                   /* this map */
-  int worst_overlaps, worst_link_hits, worst_strays; /* the worst of every map a match can deal */
+  int overlaps, link_hits, strays, misread;                        /* this map */
+  int worst_overlaps, worst_link_hits, worst_strays, worst_misread; /* the worst of every map a match can deal */
+  bool footprint_rule; /* the control KILOWATTCOUNTRY_LABELS=footprint: leaders by the old footprint rule */
 } LB;
 int view_label_overlaps(void) { return LB.worst_overlaps; }
 int view_label_maps(void) { return LB.checked; }
 int view_label_link_hits(void) { return LB.worst_link_hits; }
 int view_label_strays(void) { return LB.worst_strays; }
+int view_label_misread(void) { return LB.worst_misread; }
 void view_label_rects(int32_t *out) {
   for (int c = 0; c < KC_NCITY; c++) {
     out[4 * c] = (int32_t)lroundf(LB.r[c].x), out[4 * c + 1] = (int32_t)lroundf(LB.r[c].y);
@@ -1129,10 +1131,27 @@ static bool label_strays(int c, cw_rect r, const bool *in, const cw_rect *city, 
     if (o != c && in[o] && rect_gap(r, city[o]) < own + margin) return true;
   return false;
 }
-/* the leader a name needs (it stands off from its city, or as near another): from the plinth's rim at cc to the name's
- * nearest point. False: the name sits against its own city and needs none */
-static bool label_leader(int c, cw_rect r, const bool *in, const cw_rect *city, cw_vec2 cc, float u, cw_vec2 *a, cw_vec2 *b) {
-  if (rect_gap(r, city[c]) <= 4 * u && !label_strays(c, r, in, city, 3 * u)) return false;
+/* how far a point (a city's dot) is from a name's rect */
+static float dot_dist(cw_vec2 p, cw_rect r) {
+  float dx = fmaxf(0, fmaxf(r.x - p.x, p.x - (r.x + r.w))), dy = fmaxf(0, fmaxf(r.y - p.y, p.y - (r.y + r.h)));
+  return sqrtf(dx * dx + dy * dy);
+}
+/* a name a player would read as another city's: some other city's dot is as near the name as its own dot (within
+ * margin), so the name alone tells the wrong geography */
+static bool label_misread(int c, cw_rect r, const bool *in, const cw_vec2 *at, float margin) {
+  float own = dot_dist(at[c], r);
+  for (int o = 0; o < KC_NCITY; o++)
+    if (o != c && in[o] && dot_dist(at[o], r) < own + margin) return true;
+  return false;
+}
+/* the leader a name needs (it stands off from its city, or nearer another city's dot than its own): from the plinth's
+ * rim to the name's nearest point. False: the name sits against its own city, nearest its own dot, and needs none.
+ * KILOWATTCOUNTRY_LABELS=footprint (a control) asks only whether another city's footprint is as near, as before */
+static bool label_leader(int c, cw_rect r, const bool *in, const cw_rect *city, const cw_vec2 *at, float u, cw_vec2 *a, cw_vec2 *b) {
+  bool off = rect_gap(r, city[c]) > 4 * u;
+  bool other = LB.footprint_rule ? label_strays(c, r, in, city, 3 * u) : label_misread(c, r, in, at, 4 * u);
+  if (!off && !other) return false;
+  cw_vec2 cc = at[c];
   cw_vec2 p = cw_v2(fminf(fmaxf(cc.x, r.x), r.x + r.w), fminf(fmaxf(cc.y, r.y), r.y + r.h));
   float dx = p.x - cc.x, dy = p.y - cc.y, d = sqrtf(dx * dx + dy * dy), rad = city[c].w * 0.3f;
   *a = d > rad ? cw_v2(cc.x + dx / d * rad, cc.y + dy / d * rad) : p;
@@ -1144,7 +1163,7 @@ static int leader_hits(int c, cw_vec2 a, cw_vec2 b, const bool *in, const cw_rec
   int n = 0;
   for (int o = 0; o < KC_NCITY; o++) {
     if (o == c || !in[o]) continue;
-    if (seg_hits_rect(a, b, LB.core[o])) n++;
+    if (seg_hits_rect(a, b, city[o])) n++; /* over or close by another plinth or its houses */
     if (LB.r[o].w > 0 && seg_hits_rect(a, b, LB.r[o])) n++;
   }
   return n;
@@ -1164,8 +1183,11 @@ static int label_cost(int c, cw_rect r, const bool *in, const cw_rect *city, con
   }
   if (r.x < board.x || r.y < board.y || r.x + r.w > board.x + board.w || r.y + r.h > board.y + board.h) cost += 1000;
   cw_vec2 la, lb;
-  if (label_leader(c, r, in, city, at[c], gap / 6, &la, &lb)) /* a leader: allowed, but never over another city or name */
-    cost += 30 + 2000 * leader_hits(c, la, lb, in, city);
+  if (label_leader(c, r, in, city, at, gap / 6, &la, &lb)) { /* a leader: allowed, short, never over another city or name */
+    float len = sqrtf((lb.x - la.x) * (lb.x - la.x) + (lb.y - la.y) * (lb.y - la.y));
+    cost += 30 + (int)(3 * len / (gap / 6)) + 2000 * leader_hits(c, la, lb, in, city);
+  }
+  if (label_misread(c, r, in, at, gap * (4.0f / 6))) cost += 300; /* best nearest its own dot, with no leader needed */
   for (int l = 0; l < KC_NLINK; l++) {
     if (!link_in[l]) continue;
     if (rect_hit(r, tag[l])) cost += 20;
@@ -1179,6 +1201,7 @@ static void layout_labels(int regions, cw_vec2 sz) {
   float u = sz.y / 720.0f;
   const char *mode = cw_test_env("KILOWATTCOUNTRY_LABELS");
   bool below = mode && strcmp(mode, "below") == 0;
+  LB.footprint_rule = mode && strcmp(mode, "footprint") == 0;
   cw_vec2 at[KC_NCITY], lsz[KC_NCITY];
   bool in[KC_NCITY];
   cw_rect city[KC_NCITY], tag[KC_MAX_LINK];
@@ -1270,11 +1293,12 @@ static void layout_labels(int regions, cw_vec2 sz) {
   /* what still collides (the check): names closer than 3 units to a name, or over their own city; strays: a name over
    * the middle of another city's plinth (it hides that city) or a leader over another city or name (it points the
    * wrong way); and (looser) names over another city's footprint, a cost tag or a link */
-  LB.overlaps = LB.link_hits = LB.strays = 0;
+  LB.overlaps = LB.link_hits = LB.strays = LB.misread = 0;
   for (int c = 0; c < KC_NCITY; c++) {
     if (!in[c]) continue;
     /* a name off its city, or nearer another, gets a leader; a leader over another city or name is a stray */
-    LB.lead[c] = label_leader(c, LB.r[c], in, city, at[c], u, &LB.lead_a[c], &LB.lead_b[c]);
+    LB.lead[c] = label_leader(c, LB.r[c], in, city, at, u, &LB.lead_a[c], &LB.lead_b[c]);
+    if (!LB.lead[c] && label_misread(c, LB.r[c], in, at, 0)) LB.misread++; /* nearer another dot, and no leader to say so */
     if (LB.lead[c]) LB.strays += leader_hits(c, LB.lead_a[c], LB.lead_b[c], in, city);
     for (int o = 0; o < KC_NCITY; o++)
       if (o != c && in[o] && rect_hit(LB.r[c], LB.core[o])) LB.strays++; /* a name hiding a city */
@@ -1293,7 +1317,7 @@ static void layout_labels(int regions, cw_vec2 sz) {
 
 static void place_labels(const kc_state *s, cw_vec2 sz) {
   bool resized = LB.sx != sz.x || LB.sy != sz.y;
-  if (resized) LB.checked = 0, LB.worst_overlaps = LB.worst_link_hits = LB.worst_strays = 0, LB.sx = sz.x, LB.sy = sz.y, LB.valid = false;
+  if (resized) LB.checked = 0, LB.worst_overlaps = LB.worst_link_hits = LB.worst_strays = LB.worst_misread = 0, LB.sx = sz.x, LB.sy = sz.y, LB.valid = false;
   /* the check covers every map a match can deal: each of the maps, each joined set of three, four or five regions on
    * it (placed for the check, then thrown away); one map a frame */
   if (LB.checked < KC_NMAPS) {
@@ -1305,6 +1329,7 @@ static void place_labels(const kc_state *s, cw_vec2 sz) {
         if (LB.overlaps > LB.worst_overlaps) LB.worst_overlaps = LB.overlaps;
         if (LB.link_hits > LB.worst_link_hits) LB.worst_link_hits = LB.link_hits;
         if (LB.strays > LB.worst_strays) LB.worst_strays = LB.strays;
+        if (LB.misread > LB.worst_misread) LB.worst_misread = LB.misread;
       }
     kc_use_map(keep);
     LB.checked++;

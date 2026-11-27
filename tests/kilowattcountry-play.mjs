@@ -24,7 +24,9 @@
 // none runs into another or sits on its own city on any map and any set of regions a match can deal there
 // (kc.label_overlaps 0 once kc.label_maps covers every map), and no name hides another city or needs a leader that runs
 // over another city or name (kc.label_strays 0); CONTROL: KILOWATTCOUNTRY_LABELS=below (every name straight under its
-// city, as before) runs names together and leaves misleading names.
+// city, as before) runs names together and leaves misleading names. Every name is nearer its own city's dot than any
+// other, or has a leader line to its own (kc.label_misread 0); CONTROL: KILOWATTCOUNTRY_LABELS=footprint (leaders only
+// where another city's footprint is as near, the 0.3.0 rule) leaves names a player reads as a neighbour's.
 import { mkdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -83,7 +85,7 @@ async function play(gpu, { control = '' } = {}) {
     return s;
   };
   try {
-    const sw = { set: ' CW_TEST_SET_UNRECORDED=1', pointer: ' CW_TEST_POINTER_UNRECORDED=1', nostart: '', labels: ' KILOWATTCOUNTRY_LABELS=below', map: ' KILOWATTCOUNTRY_TEST_HIDE=map' }[control] ?? '';
+    const sw = { set: ' CW_TEST_SET_UNRECORDED=1', pointer: ' CW_TEST_POINTER_UNRECORDED=1', nostart: '', labels: ' KILOWATTCOUNTRY_LABELS=below', footprint: ' KILOWATTCOUNTRY_LABELS=footprint', map: ' KILOWATTCOUNTRY_TEST_HIDE=map' }[control] ?? '';
     await h.command(control === 'nostart' ? 'env KILOWATTCOUNTRY_SEED=3' : `env KILOWATTCOUNTRY_SEATS=p,c1 KILOWATTCOUNTRY_SEED=3${sw}`);
     await h.step(90);
     if (control === 'nostart') {
@@ -93,12 +95,17 @@ async function play(gpu, { control = '' } = {}) {
     }
     let s = await st();
     for (let n = 0; n < 10 && s.label_maps < 7; n++) { await h.step(10); s = await st(); }
+    if (control === 'footprint') {
+      check(s.label_maps === 7 && s.label_misread > 0, `CONTROL ${gpu}: leaders drawn by the old footprint rule leave names nearer another city's dot with no leader (${s.label_misread}): caught`);
+      return null;
+    }
     if (control === 'labels') {
       check(s.label_maps === 7 && s.label_overlaps > 0, `CONTROL ${gpu}: every name straight under its city runs names together on some map (${s.label_overlaps} over ${s.label_maps} maps): caught`);
       check(s.label_strays > 0, `CONTROL ${gpu}: every name straight under its city leaves names that hide a city or point the wrong way (${s.label_strays}): caught`);
       return null;
     }
     check(s.label_maps === 7 && s.label_overlaps === 0, `${gpu}: no city name runs into another or sits on its own city, on all ${s.label_maps} maps and every set of regions a match deals there (${s.label_overlaps}; over another city, a tag or a link: ${s.label_link_hits})`);
+    check(s.label_misread === 0, `${gpu}: every city name is nearer its own city's dot than any other, or has a leader line to it, on every map (${s.label_misread} misread)`);
     check(s.label_strays === 0, `${gpu}: no city name hides another city and no leader runs over another city or name, on every map (${s.label_strays})`);
     /* the setup card */
     if (control !== 'map') check(s.setup === 1 && s.map === 0 && s.ntargets === 8 && s.cursor === 7, `${gpu}: the setup card opens on the first map, the cursor on Begin (setup ${s.setup}, map ${s.map}, targets ${s.ntargets}, cursor ${s.cursor})`);
@@ -195,6 +202,6 @@ const gpus = gpusArg(process.argv);
 const runs = {};
 for (const gpu of gpus) { await titlePages(gpu); runs[gpu] = await play(gpu); }
 if (runs.gl && runs.webgpu) check(runs.gl.hash === runs.webgpu.hash && runs.gl.frame === runs.webgpu.frame, `GL and WebGPU end in the same state (${runs.gl.hash} at frame ${runs.gl.frame}, ${runs.webgpu.hash} at ${runs.webgpu.frame})`);
-for (const control of ['set', 'pointer', 'nostart', 'labels', 'map']) await play(gpus[0], { control });
+for (const control of ['set', 'pointer', 'nostart', 'labels', 'footprint', 'map']) await play(gpus[0], { control });
 console.log(failed ? `${failed} failed` : 'kilowattcountry play: all passed');
 process.exit(failed ? 1 : 0);

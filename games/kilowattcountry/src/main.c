@@ -16,7 +16,9 @@
  * seat), kc.cities (per seat), kc.powered (per seat), kc.hash (the match's state hash, low 32 bits), kc.matches,
  * kc.games_done, kc.moving, kc.lit (houses glowing), kc.label_overlaps (city names running into a name or on their own city, the
  * worst over every map; KILOWATTCOUNTRY_LABELS=below puts each under its city as before), kc.label_link_hits (names
- * over another city, a cost tag or a link), kc.label_strays (names hiding another city, or leaders over another city or name), kc.label_rect (each name's rect, then each city's footprint), kc.cursor (the person's target), kc.ntargets, kc.help, kc.pointer_picks,
+ * over another city, a cost tag or a link), kc.label_strays (names hiding another city, or leaders over another city or name),
+ * kc.label_misread (names nearer another city's dot than their own with no leader; KILOWATTCOUNTRY_LABELS=footprint draws
+ * leaders by the old footprint rule, a control), kc.label_rect (each name's rect, then each city's footprint), kc.cursor (the person's target), kc.ntargets, kc.help, kc.pointer_picks,
  * kc.target_px (each target's canvas point: tests tap there), kc.target_kind (the move kind a confirm on each plays),
  * kc.pad_kinds and kc.pointer_kinds (people's moves by kind and input), kc.last_kind, kc.kinds_used (move kinds people
  * used), kc.nplants, kc.stored (fuel held, per seat), kc.auc_plant (its number), kc.auc_bid, kc.auc_in (seat bits).
@@ -59,7 +61,7 @@ static struct {
   uint32_t want_hash, want_input;
   int32_t busy, mode, help, pointer_picks, replaying, replay_done, replay_match, replay_hash_match;
   int32_t target_px[2 * KG_MAX_TARGETS];
-  int32_t ticks, games_done, round, step, phase, turn, decisions, cpu_moves, over, winner, matches, moving, lit, cursor, ntargets, label_overlaps, label_hits, label_strays;
+  int32_t ticks, games_done, round, step, phase, turn, decisions, cpu_moves, over, winner, matches, moving, lit, cursor, ntargets, label_overlaps, label_hits, label_strays, label_misread;
   int32_t money[KC_MAX_P], cities[KC_MAX_P], powered[KC_MAX_P], nplants[KC_MAX_P], stored[KC_MAX_P];
   int32_t pad_kinds[KC_M_DRAW], pointer_kinds[KC_M_DRAW], last_kind, kinds_used, auc_plant, auc_bid, auc_in;
   int32_t target_kind[KG_MAX_TARGETS], label_rect[8 * KC_NCITY], map_now, setup_now, map_picks, label_maps;
@@ -213,6 +215,7 @@ static void init(void *user) {
   cw_debug_i32("kc.label_overlaps", &M.label_overlaps);
   cw_debug_i32("kc.label_link_hits", &M.label_hits);
   cw_debug_i32("kc.label_strays", &M.label_strays);
+  cw_debug_i32("kc.label_misread", &M.label_misread);
   cw_debug_field("kc.label_rect", M.label_rect, CW_DBG_I32, 8 * KC_NCITY);
   cw_debug_i32("kc.cursor", &M.cursor);
   cw_debug_i32("kc.map", &M.map_now);
@@ -334,6 +337,7 @@ static void update(void *user, double dt) {
   M.label_overlaps = view_label_overlaps();
   M.label_hits = view_label_link_hits();
   M.label_strays = view_label_strays();
+  M.label_misread = view_label_misread();
   view_label_rects(M.label_rect);
   M.label_maps = view_label_maps();
 }

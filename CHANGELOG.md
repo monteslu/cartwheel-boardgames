@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.1
+
+- **Kilowatt Country:** every city name now stands nearest its own city's dot, or has a leader line to it, so the
+  names tell the real geography on all seven maps (a name drawn beside a neighbouring city read as that city).
+  Leaders keep clear of other cities and their houses. On France, Berck-Plage on the north coast takes the place of
+  Auxerre, crowded in beside Paris; on Central Europe, Halle takes Magdeburg's place; so every name finds a clear
+  spot. The play test checks this on every map and every set of regions, with a control that must fail.
+
 ## 0.3.0
 
 Every game on engine v0.84.0, with How to play and Credits on the title and each move type checked on the pad and

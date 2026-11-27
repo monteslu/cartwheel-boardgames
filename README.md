@@ -128,7 +128,7 @@ leftover favour score, and every empty pane costs a point; alone, you try to bea
 
 ### Kilowatt Country
 
-![Kilowatt Country, round 7 on the Central Europe map: a night map with Amsterdam, Berlin, Prague, Vienna, Warsaw and Budapest among thirty named real cities, houses in four company colours glowing in the north-west and Poland, plants for sale on the left, the fuel market on the right, and each company's plant cards along the near edge](docs/screenshots/kilowattcountry.jpg)
+![Kilowatt Country, round 6 on the Central Europe map: a night map with Amsterdam, Berlin, Prague, Vienna, Warsaw and Budapest among thirty named real cities, houses in four company colours glowing from the Low Countries to Dresden, plants for sale on the left, the fuel market on the right, and each company's plant cards along the near edge](docs/screenshots/kilowattcountry.jpg)
 Bid for power plants at auction, buy coal, oil, garbage or uranium as prices climb, and wire houses into real cities
 across a night map, paying for every link from your network by its real distance. Each round your plants burn their
 fuel to light your cities and pay you for each one lit. When a company reaches the city goal, the most cities lit that

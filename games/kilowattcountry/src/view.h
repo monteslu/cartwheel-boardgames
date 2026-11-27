@@ -23,6 +23,9 @@ int view_label_link_hits(void);
 /* city names that mislead: a name over the middle of another city's plinth, or a leader (drawn from a name that had to
  * stand off from its city) over another city or name; the worst over every map a match can deal (a debug field) */
 int view_label_strays(void);
+/* city names nearer another city's dot than their own with no leader line to their own: a player would read them as
+ * that city's (the worst over every map a match can deal; a debug field) */
+int view_label_misread(void);
 /* each city name's rect on this map, then each city's footprint, canvas units (x, y, w, h; a name of w 0 is not
  * in play): a debug field of 8 * KC_NCITY */
 void view_label_rects(int32_t *out);

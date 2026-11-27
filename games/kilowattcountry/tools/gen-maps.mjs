@@ -44,10 +44,10 @@ export const MAPS = [
   { key: 'usa', title: 'United States', cc: ['US'], lon: [-124.8, -67], lat: [24.8, 49.4], space: 0.097, states: 'USA', skip: ['Montgomery/US'] },
   { key: 'useast', title: 'Eastern States', cc: ['US'], lon: [-95.5, -69.5], lat: [28.8, 45.6], space: 0.1, states: 'USA' },
   { key: 'lakes', title: 'Great Lakes', cc: ['US', 'CA'], lon: [-93.5, -71], lat: [38.6, 47.4], space: 0.1 },
-  { key: 'france', title: 'France', cc: ['FR'], lon: [-5.2, 8.4], lat: [42.3, 51.1], space: 0.1, skip: ['Aurillac/FR'] },
+  { key: 'france', title: 'France', cc: ['FR'], lon: [-5.2, 8.4], lat: [42.3, 51.1], space: 0.1, skip: ['Aurillac/FR', 'Auxerre/FR'] },
   { key: 'iberia', title: 'Iberia', cc: ['ES', 'PT'], lon: [-9.6, 3.4], lat: [35.9, 43.9], space: 0.1 },
   { key: 'balkans', title: 'The Balkans', cc: ['SI', 'HR', 'BA', 'RS', 'ME', 'XK', 'MK', 'AL', 'BG', 'RO', 'GR', 'MD'], lon: [13.4, 29.8], lat: [37.8, 47.6], space: 0.1 },
-  { key: 'central', title: 'Central Europe', cc: ['DE', 'PL', 'CZ', 'AT', 'NL', 'BE', 'CH', 'SK', 'HU'], lon: [3.0, 24.5], lat: [45.6, 54.9], space: 0.1, first: ['Amsterdam/NL'] },
+  { key: 'central', title: 'Central Europe', cc: ['DE', 'PL', 'CZ', 'AT', 'NL', 'BE', 'CH', 'SK', 'HU'], lon: [3.0, 24.5], lat: [45.6, 54.9], space: 0.1, first: ['Amsterdam/NL'], skip: ['Magdeburg/DE'] },
 ];
 
 // ── places ─────────────────────────────────────────────────────────
